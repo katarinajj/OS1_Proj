@@ -34,7 +34,7 @@ public:
 	
 	static void wrapper();
 private:
-	static staticID;
+	static ID staticID;
 	ID id;
 };
 

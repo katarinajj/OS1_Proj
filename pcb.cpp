@@ -4,7 +4,7 @@
 #include "pcb.h"
 #include "SCHEDULE.h"
 
-int PCB::staticID = 0;
+ID PCB::staticID = 0;
 
 void idleBody() {
 	while(1);
