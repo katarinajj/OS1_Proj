@@ -1,14 +1,12 @@
 #include "pcb.h"
-#include "schedule.h"
-
 
 Thread::Thread (StackSize stackSize, Time timeSlice) {
-	this->myPCB = new PCB(stackSize, timeSlice, this, this->run()); // run ovako??
-	everyPBC.add(this->myPCB);
+	this->myPCB = new PCB(stackSize, timeSlice, this); // run ovako??
+	//everyPBC.add(this->myPCB);
 }
 
 Thread::~Thread () {
-	if (myPCB) everyPCB.remove(myPCB);
+	//if (myPCB) everyPCB.remove(myPCB);
 	myPCB = 0;
 }
 
@@ -16,13 +14,6 @@ void Thread::waitToComplete() {
 	if (myPCB) myPCB->waitToComplete();
 }
 
-
-void dispatch() {
-	asm cli;
-	context_switch_on_demand = 1;
-	timer();
-	asm sti;
-}
 
 void Thread::start() {
 	if (myPCB) myPCB->start();
@@ -40,4 +31,8 @@ ID Thread::getRunningId() {
 Thread * Thread::getThreadById(ID id) {
 	return PCB::getThreadById(id);
 }
+
+
+
+
 
