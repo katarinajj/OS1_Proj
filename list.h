@@ -12,23 +12,27 @@ public:
 		Elem(PCB *p1, Elem *next1 = 0) {
 			p = p1; next = next1;
 		}
+		~Elem() { 
+			p = 0; next = 0;
+		}
 	};
 	
 	Elem *first, *last;
 	int len;
 	
 	List();
-	List(const List &l);
+	//List(const List &l);
 	~List();
 	
-	List& operator=(const List &l);
+	//List& operator=(const List &l);
 	
 	int length();
 	
-	List& add(PCB *p);
+	void add(PCB *p);
+	void remove(PCB *p);
+	void deleteList();
 	
 private:
-	void deleteList();
 	void copyList(const List &l);
 };
 

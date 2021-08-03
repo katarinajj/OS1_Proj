@@ -11,7 +11,6 @@ void List::deleteList() {
 	len = 0;
 }
 
-
 void List::copyList(const List &l) {
 	len = l.len;
 	if (l.first = 0 && l.last = 0) {
@@ -31,29 +30,46 @@ List::List() {
 	len = 0;
 }
 
+/*
 List::List(const List &l) {
 	copyList(l);
 }
+*/
 
 List::~List() {
 	deleteList();
 }
 
+/*
 List& List::operator=(const List &l) {
 	if (this != &l) {
 		deleteList();
 		copyList(l);
 	}
 	return *this;
-}
+}*/
 
 int List::length() {
 	return len;
 }
 
-List& List::add(PCB *p) {
+void List::add(PCB *p) {
 	Elem *tmp = new Elem(p);
 	len++;
 	last = (!first ? first : last->next) = tmp;
-	return *this;
+}
+
+void List::remove(PCB *p1) {
+	Elem *tmp = first, *prev = 0;
+	if (tmp && tmp->p->getId() == p1->getId()) {
+		first = first->next;
+		delete tmp;
+		return;
+	}
+	for (; tmp && tmp->p->getId() != p1->getId(); tmp = tmp->next) 
+		prev = tmp;
+
+	if (!tmp) return; // nije ni bio u listi
+	prev->next = tmp->next;
+	delete tmp;
 }

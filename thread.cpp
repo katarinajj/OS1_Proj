@@ -1,14 +1,14 @@
-#include "thread.h"
 #include "pcb.h"
 #include "schedule.h"
 
 
 Thread::Thread (StackSize stackSize, Time timeSlice) {
-	this->myPCB = new PCB(stackSize, timeSlice, this);
+	this->myPCB = new PCB(stackSize, timeSlice, this, this->run()); // run ovako??
+	everyPBC.add(this->myPCB);
 }
 
 Thread::~Thread () {
-	if (myPCB) delete myPCB;
+	if (myPCB) everyPCB.remove(myPCB);
 	myPCB = 0;
 }
 

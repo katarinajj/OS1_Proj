@@ -1,7 +1,7 @@
 #include <dos.h>
 
 #include "timer.h"
-#include "schedule.h"
+#include "SCHEDULE.h"
 #include "pcb.h"
 
 volatile unsigned int lockFlag = 1;
@@ -11,14 +11,14 @@ unsigned tss;
 unsigned tbp;
 
 volatile int counter = defaultTimeSlice;
-volatile int contex_switch_on_demand = 0;
+volatile int context_switch_on_demand = 0;
 
 void interrupt timer(){	// prekidna rutina
 	int dummy=0;
-	if (!zahtevana_promena_konteksta) brojac--; 
-	if (brojac == 0 || zahtevana_promena_konteksta) {
+	if (!context_switch_on_demand) brojac--; 
+	if (brojac == 0 || context_switch_on_demand) {
 		if(lockFlag==1){ // dozvoljena promena konteksta
-			zahtevana_promena_konteksta=0;
+			context_switch_on_demand=0;
 			asm {
 				// cuva sp
 				mov tsp, sp
@@ -44,7 +44,7 @@ void interrupt timer(){	// prekidna rutina
 				mov bp, tbp
 			}
 		}
-		else zahtevana_promena_konteksta=1;
+		else context_switch_on_demand=1;
 
 	} 
     
@@ -53,7 +53,7 @@ void interrupt timer(){	// prekidna rutina
      // poziva se samo kada nije zahtevana promena
      // konteksta – tako se da se stara
      // rutina poziva samo kada je stvarno doslo do prekida	
-	if(!zahtevana_promena_konteksta) asm int 60h;
+	if(!context_switch_on_demand) asm int 60h;
 		                                              
 }
 
