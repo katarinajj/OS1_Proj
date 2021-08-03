@@ -6,18 +6,21 @@
 
 int PCB::staticID = 0;
 
-idleThread = new PCB(defaultStackSize, 1, 0); //idleBody
- 
+void idleBody() {
+	while(1);
+}
 
-PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread) {
+idleThread = new PCB(defaultStackSize, 1, 0, idleBody);
+
+PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) {
 	if (stackSize < defaultStackSize) stackSize = defaultStackSize;
 	else if (stackSize > maxStackSize) stackSize = maxStackSize
 	unsigned long numOfIndex = stackSize / sizeof(unsigned);
 	unsigned* st1 = new unsigned[numOfIndex];
 	
 	st1[numOfIndex - 1] = 0x200;//setovan I fleg u pocetnom PSW-u za nit
-	st1[numOfIndex - 2] = FP_SEG(PCB::wrapper);
-	st1[numOfIndex - 3] = FP_OFF(PCB::wrapper);
+	st1[numOfIndex - 2] = FP_SEG(body);
+	st1[numOfIndex - 3] = FP_OFF(body);
 	
 	this->ss = FP_SEG(st1 + numOfIndex - 12);
 	this->sp = FP_OFF(st1 + numOfIndex - 12);  //svi sacuvani reg pri ulasku u interrupt rutinu
@@ -60,10 +63,6 @@ Thread * PCB::getThreadById(ID id) {
 
 	if (!tmp) return 0; // nije ni bio u listi
 	return tmp->myThread;
-}
-
-void idleBody() {
-	while(1);
 }
 
 void PCB::wrapper() {

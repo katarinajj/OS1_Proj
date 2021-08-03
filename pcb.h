@@ -30,7 +30,7 @@ public:
 	static ID getRunningId();
 	static Thread * getThreadById(ID id);
 
-	PCB (StackSize stackSize, Time timeSlice, Thread *myThread); 
+	PCB (StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)() = PCB::wrapper); 
 	
 	static void wrapper();
 private:
