@@ -5,18 +5,15 @@
 PCB *p[3];
 
 void exitThread(){
-	running->state = TERMINATED;
+	PCB::running->state = TERMINATED;
 	dispatch();
 }
 
 void a(){
 	for (int i =0; i < 30; ++i) {
-		lockFlag = 0;
+		lockCout
 		cout<<"u a() i = "<<i<<endl;
-		lockFlag = 1;
-		if (context_switch_on_demand) {
-			dispatch();
-		}
+		unlockCout
 		for (int k = 0; k<10000; ++k)
 			for (int j = 0; j <30000; ++j);
 	}
@@ -25,12 +22,9 @@ void a(){
 
 void b(){
 	for (int i =0; i < 30; ++i) {
-		lockFlag = 0;
+		lockCout
 		cout<<"u b() i = "<<i<<endl;
-		lockFlag = 1;
-		if (context_switch_on_demand) {
-			dispatch();
-		}
+		unlockCout
 		for (int k = 0; k<10000; ++k)
 			for (int j = 0; j <30000; ++j);
 	}
@@ -49,23 +43,22 @@ void doSomething(){
 
 	p[0] = new PCB(4096, 20, 0);
 
-	running = p[0];
+	PCB::running = p[0];
 	unlock
 
 #ifndef BCC_BLOCK_IGNORE
 	for (int i = 0; i < 30; ++i) {
-  	lock
-  	cout<<"main "<<i<<endl;
-  	unlock
+		lock
+		cout<<"main "<<i<<endl;
+		unlock
 
-	for (int j = 0; j< 30000; ++j)
-		for (int k = 0; k < 30000; ++k);
+		for (int j = 0; j< 30000; ++j)
+			for (int k = 0; k < 30000; ++k);
 	}
 #endif
 	cout<<"Happy End"<<endl;
 }
 
-// komentar
 int main(){
 
   inic();

@@ -1,39 +1,44 @@
-#ifndef _list_h_
-#define _list_h_
+#ifndef LIST_H_
+#define LIST_H_
 
-#include "pcb.h"
+class PCB;
 
 class List {
 
 public:
 	struct Elem {
-		PCB *p;
+		void *p;
 		Elem *next;
-		Elem(PCB *p1, Elem *next1 = 0) {
+		Elem(void *p1, Elem *next1 = 0) {
 			p = p1; next = next1;
 		}
-		~Elem() { 
+		~Elem() {
 			p = 0; next = 0;
 		}
 	};
-	
+
 	Elem *first, *last;
 	int len;
-	
+
 	List();
 	//List(const List &l);
 	~List();
-	
+
 	//List& operator=(const List &l);
-	
+
 	int length();
-	
-	void add(PCB *p);
-	void remove(PCB *p);
+
+	void addPCB(PCB *p);
+	void removePCB(PCB *p);
 	void deleteList();
-	
+
+	PCB* getPCBbyId(ID id);
+
 private:
 	void copyList(const List &l);
 };
 
-#endif
+
+
+
+#endif /* LIST_H_ */

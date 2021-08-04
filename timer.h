@@ -4,9 +4,11 @@
 #include "pcb.h"
 
 // MAKROI
-// Zabranjuje prekide
-#define lock asm cli
+// hard lock - zabranjuje SVE maskirajuce prekide - dovoljava gnezdjenje
+#define lock asm { pushf; cli; }
+#define unlock asm popf
 
+// lock koji koristimo u kriticnim sekcijama da ne bi dolazilo do promene konteksta
 #define lockCout lockFlag = 0;
 
 #define unlockCout lockFlag = 1;\
@@ -14,8 +16,6 @@
 			dispatch();\
 		}
 
-// Dozvoljava prekide
-#define unlock asm sti
 // -----------------
 
 extern volatile unsigned lockFlag;

@@ -14,9 +14,9 @@ volatile int context_switch_on_demand = 0;
 // po ulasku u timer() I bit je sigurno 0
 void interrupt timer(){	// prekidna rutina
 
-	if (!context_switch_on_demand) counter--;
+	if (!context_switch_on_demand) { counter--; asm int 60h; }
 
-	if (counter == 0 || context_switch_on_demand) {
+	if ((counter == 0 && PCB::running->timeSlice != 0) || context_switch_on_demand) {
 		if (lockFlag) {
 			context_switch_on_demand = 0;
 			asm {
@@ -25,9 +25,9 @@ void interrupt timer(){	// prekidna rutina
 				mov tbp, bp
 			}
 
-			running->sp = tsp;
-			running->ss = tss;
-			running->bp = tbp;
+			PCB::running->sp = tsp;
+			PCB::running->ss = tss;
+			PCB::running->bp = tbp;
 
 			// ---------- ispis unutar prekidne rutine
 			lockFlag = 0;
@@ -38,14 +38,14 @@ void interrupt timer(){	// prekidna rutina
 			lockFlag = 1;
 
 
-			if (running->state == READY) Scheduler::put((PCB*) running);
-			running = Scheduler::get();
+			if (PCB::running->state != TERMINATED) Scheduler::put((PCB*) PCB::running);
+			PCB::running = Scheduler::get();
 
-			tsp = running->sp;
-			tss = running->ss;
-			tbp = running->bp;
+			tsp = PCB::running->sp;
+			tss = PCB::running->ss;
+			tbp = PCB::running->bp;
 
-			counter = running->timeSlice;
+			counter = PCB::running->timeSlice;
 
 			asm {
 				mov sp, tsp
@@ -57,15 +57,15 @@ void interrupt timer(){	// prekidna rutina
 	}
 	 // poziv stare prekidne rutine koja se nalazila na 08h, a sad je na 60h poziva se samo kada nije zahtevana
 	 // promena konteksta – tako se da se stara rutina poziva samo kada je stvarno doslo do prekida
-    if (!context_switch_on_demand) asm int 60h;
+    //if (!context_switch_on_demand || (!counter && !lockFlag)) asm int 60h;
 }
 
 unsigned oldTimerOFF, oldTimerSEG; // stara prekidna rutina
 
 // postavlja novu prekidnu rutinu
 void inic(){
+	lock
 	asm{
-		cli
 		push es
 		push ax
 
@@ -87,16 +87,13 @@ void inic(){
 
 		pop ax
 		pop es
-		sti
 	}
+	unlock
 }
 
-
-
-// vraca staru prekidnu rutinu
 void restore(){
+	lock
 	asm {
-		cli
 		push es
 		push ax
 
@@ -110,13 +107,13 @@ void restore(){
 
 		pop ax
 		pop es
-		sti
 	}
+	unlock
 }
 
 void dispatch() {
-	asm cli;
+	lock
 	context_switch_on_demand = 1;
 	timer();
-	asm sti;
+	unlock
 }

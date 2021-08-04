@@ -1,12 +1,12 @@
 #include <dos.h>
-
 #include "pcb.h"
 
 ID PCB::staticID = 0;
 
-volatile PCB *running = 0;
+volatile PCB* PCB::running = 0;
+List* PCB::allPCBs = new List();
 
-void idleBody() {
+void PCB::idleBody() {
 	while(1);
 }
 
@@ -32,6 +32,9 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) 
 
 	this->state = INITIALIZED;
 	this->id = ++staticID;
+	this->myThread = myThread;
+	this->timeSlice = timeSlice;
+	this->stack = st1;
 
 }
 
@@ -52,25 +55,19 @@ void PCB::waitToComplete() {
 PCB::~PCB() {
 	delete this->stack;
 	//delete waitingForThis;
-	delete myThread;
+	//delete myThread;
 }
 
 ID PCB::getId() { return id; }
 
 ID PCB::getRunningId() {
-	//return running->getId(); ???
-	return 0;
+	return running->id;
 }
 
 Thread * PCB::getThreadById(ID id) {
-	/*
-	Elem *tmp = first;
-	for (Elem *tmp = everyPCB.first; tmp && tmp->p->getId() != id; tmp = tmp->next);
-
-	if (!tmp) return 0; // nije ni bio u listi
-	return tmp->myThread;
-	*/
-	return 0;
+	PCB *tmp = allPCBs->getPCBbyId(id);
+	if (!tmp) return 0;
+	else return tmp->myThread;
 }
 
 void PCB::wrapper() {

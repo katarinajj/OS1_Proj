@@ -3,16 +3,12 @@
 
 #include "thread.h"
 #include "SCHEDULE.h"
-// #include "list.h"
+#include "list.h"
 
 const StackSize maxStackSize = 65536;
 
 enum State {INITIALIZED, READY, RUNNING, SUSPENDED, TERMINATED};
 
-
-extern volatile PCB *running;
-
-//volatile List everyPCB;
 
 class PCB {
 public:
@@ -27,7 +23,10 @@ public:
 	Thread *myThread;
 	//List waitingForThis;
 
-	static PCB *idleThread;
+	static volatile PCB* running;
+	static PCB* idleThread;
+
+	static List *allPCBs;
 
 	void start();
 	void waitToComplete();
@@ -43,6 +42,8 @@ public:
 private:
 	static ID staticID;
 	ID id;
+
+	static void idleBody();
 };
 
 
