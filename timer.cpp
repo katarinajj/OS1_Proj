@@ -38,8 +38,9 @@ void interrupt timer(){	// prekidna rutina
 			lockFlag = 1;
 
 
-			if (PCB::running->state != TERMINATED) Scheduler::put((PCB*) PCB::running);
+			if (PCB::running->state == READY) Scheduler::put((PCB*) PCB::running);
 			PCB::running = Scheduler::get();
+			if (PCB::running == 0) PCB::running = PCB::idlePCB;
 
 			tsp = PCB::running->sp;
 			tss = PCB::running->ss;

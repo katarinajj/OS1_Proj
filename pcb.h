@@ -1,6 +1,7 @@
 #ifndef PCB_H_
 #define PCB_H_
 
+#include "Locks.h"
 #include "thread.h"
 #include "SCHEDULE.h"
 #include "list.h"
@@ -9,6 +10,7 @@ const StackSize maxStackSize = 65536;
 
 enum State {INITIALIZED, READY, RUNNING, SUSPENDED, TERMINATED};
 
+void idleBody();
 
 class PCB {
 public:
@@ -24,9 +26,9 @@ public:
 	List *waitingForThis;
 
 	static volatile PCB* running;
-	static PCB* idleThread;
-
-	static List *allPCBs;
+	static PCB* mainPCB;
+	static PCB* idlePCB;
+	static List* allPCBs;
 
 	void start();
 	void waitToComplete();
@@ -36,14 +38,12 @@ public:
 	static Thread * getThreadById(ID id);
 
 	PCB (StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)() = PCB::wrapper);
-
 	static void wrapper();
 
 private:
 	static ID staticID;
 	ID id;
-
-	static void idleBody();
+	PCB();
 };
 
 

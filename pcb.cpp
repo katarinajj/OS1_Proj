@@ -1,17 +1,18 @@
 #include <dos.h>
 #include "pcb.h"
 
-ID PCB::staticID = 0;
-
-volatile PCB* PCB::running = 0;
-List* PCB::allPCBs = new List();
-
-void PCB::idleBody() {
+void idleBody() {
 	while(1);
 }
 
-PCB* PCB::idleThread = new PCB(defaultStackSize, 1, 0, idleBody);
+ID PCB::staticID = 0;
 
+PCB* PCB::mainPCB = new PCB();
+PCB* PCB::idlePCB = new PCB(256, 1, 0, idleBody);
+
+volatile PCB* PCB::running = mainPCB;
+
+List* PCB::allPCBs = new List();
 
 PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) {
 	if (stackSize < defaultStackSize) stackSize = defaultStackSize;
@@ -39,6 +40,18 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) 
 	this->waitingForThis = new List();
 }
 
+PCB::PCB() { // konstruktor za mainPCB
+	this->ss = this->sp = this->bp = 0;
+	this->stack = 0;
+
+	this->timeSlice = 20; //!!!!! 	TODO: PROMENI NA DEFAULT
+	this->state = READY; // ?
+
+	this->myThread = 0;
+	this->waitingForThis = 0;
+	this->id = ++staticID;
+}
+
 void PCB::start() {
 	this->state = READY;
 	Scheduler::put(this);
@@ -54,7 +67,7 @@ void PCB::waitToComplete() {
 
 PCB::~PCB() {
 	if(this->stack) delete this->stack;
-	if(myThread) delete myThread;
+	//if(myThread) delete myThread;
 }
 
 ID PCB::getId() { return id; }
@@ -62,16 +75,6 @@ ID PCB::getId() { return id; }
 ID PCB::getRunningId() {
 	return running->id;
 }
-/*
- * PCB* List::getPCBbyId(ID id) {
-	Elem *tmp = first;
-	for (; tmp && ((PCB*)(tmp->p))->getId() != id; tmp = tmp->next);
-
-	if (!tmp) return 0; // nije ni bio u listi
-	else return (PCB*)tmp->p;
-}
- */
-
 
 Thread * PCB::getThreadById(ID id) {
 	PCB *tmp = 0;
