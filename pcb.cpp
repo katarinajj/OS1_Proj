@@ -8,18 +8,23 @@ void idleBody() {
 ID PCB::staticID = 0;
 
 PCB* PCB::mainPCB = new PCB();
-PCB* PCB::idlePCB = new PCB(256, 1, 0, idleBody);
+
+PCB* PCB::idlePCB = new PCB(defaultStackSize, 1, 0, idleBody);
 
 volatile PCB* PCB::running = mainPCB;
 
 List* PCB::allPCBs = new List();
 
 PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) {
+	// TODO: ispravi ovo za velicinu steka
 	if (stackSize < defaultStackSize) stackSize = defaultStackSize;
 	else if (stackSize > maxStackSize) stackSize = maxStackSize;
+
 	unsigned long numOfIndex = stackSize / sizeof(unsigned);
 
+	lockCout
 	unsigned* st1 = new unsigned[numOfIndex];
+	unlockCout
 
 	st1[numOfIndex - 1] = 0x200;//setovan I fleg u pocetnom PSW-u za nit
 
@@ -37,14 +42,17 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) 
 	this->myThread = myThread;
 	this->timeSlice = timeSlice;
 	this->stack = st1;
+
+	lockCout
 	this->waitingForThis = new List();
+	unlockCout
 }
 
 PCB::PCB() { // konstruktor za mainPCB
 	this->ss = this->sp = this->bp = 0;
 	this->stack = 0;
 
-	this->timeSlice = 20; //!!!!! 	TODO: PROMENI NA DEFAULT
+	this->timeSlice = defaultTimeSlice;
 	this->state = READY; // ?
 
 	this->myThread = 0;
@@ -53,8 +61,10 @@ PCB::PCB() { // konstruktor za mainPCB
 }
 
 void PCB::start() {
-	this->state = READY;
-	Scheduler::put(this);
+	if (this->state == INITIALIZED) {
+		this->state = READY;
+		Scheduler::put(this);
+	}
 }
 
 void PCB::waitToComplete() {
@@ -66,7 +76,12 @@ void PCB::waitToComplete() {
 }
 
 PCB::~PCB() {
-	if(this->stack) delete this->stack;
+	if(this->stack) {
+		lockCout
+		delete [] this->stack;
+		unlockCout
+		this->stack = 0;
+	}
 	//if(myThread) delete myThread;
 }
 

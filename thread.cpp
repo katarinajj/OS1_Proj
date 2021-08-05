@@ -1,7 +1,9 @@
 #include "pcb.h"
 
 Thread::Thread (StackSize stackSize, Time timeSlice) {
-	this->myPCB = new PCB(stackSize, timeSlice, this); // run ovako??
+	lockCout
+	this->myPCB = new PCB(stackSize, timeSlice, this);
+	unlockCout
 	PCB::allPCBs->addPCB(this->myPCB);
 }
 

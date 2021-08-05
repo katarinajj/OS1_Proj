@@ -8,8 +8,8 @@ extern unsigned tsp;
 extern unsigned tss;
 
 extern volatile int counter;
-extern volatile int context_switch_on_demand;
 
+void tick();
 void inic();
 void restore();
 void interrupt timer();

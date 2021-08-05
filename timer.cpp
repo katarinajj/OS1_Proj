@@ -14,7 +14,8 @@ volatile int context_switch_on_demand = 0;
 // po ulasku u timer() I bit je sigurno 0
 void interrupt timer(){	// prekidna rutina
 
-	if (!context_switch_on_demand) { counter--; asm int 60h; }
+	if (!context_switch_on_demand) { asm int 60h; tick(); }
+	if (!context_switch_on_demand && counter > 0) { counter--; }
 
 	if ((counter == 0 && PCB::running->timeSlice != 0) || context_switch_on_demand) {
 		if (lockFlag) {
@@ -29,13 +30,12 @@ void interrupt timer(){	// prekidna rutina
 			PCB::running->ss = tss;
 			PCB::running->bp = tbp;
 
-			// ---------- ispis unutar prekidne rutine
+			/* ---------- ispis unutar prekidne rutine
 			lockFlag = 0;
 			cout << "Promena konteksta! Brojac = " << counter << endl;
-			// ako neko vec vrsi ispis, lockFlag je vec na 0 i zato se nece ni poceti promena
-			// konteksta, pa samim tim se ne moze desiti ni ovaj ispis
 			asm cli; // nekad se prekidi omoguce unutar cout<<...
 			lockFlag = 1;
+			*/
 
 
 			if (PCB::running->state == READY) Scheduler::put((PCB*) PCB::running);
@@ -56,9 +56,6 @@ void interrupt timer(){	// prekidna rutina
 		}
 		else context_switch_on_demand = 1;
 	}
-	 // poziv stare prekidne rutine koja se nalazila na 08h, a sad je na 60h poziva se samo kada nije zahtevana
-	 // promena konteksta – tako se da se stara rutina poziva samo kada je stvarno doslo do prekida
-    //if (!context_switch_on_demand || (!counter && !lockFlag)) asm int 60h;
 }
 
 unsigned oldTimerOFF, oldTimerSEG; // stara prekidna rutina

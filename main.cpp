@@ -1,5 +1,3 @@
-#include <iostream.h>
-
 #include "timer.h"
 
 int userMain(int argc, char *arvg[]);

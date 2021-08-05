@@ -5,7 +5,9 @@ void List::deleteList() {
 	while (first) {
 		Elem *old = first;
 		first = first->next;
+		lockCout
 		delete old;
+		unlockCout
 	}
 	first = last = cur = prev = 0;
 	len = 0;
@@ -21,7 +23,9 @@ void List::copyList(const List &l) {
 		cur = l.cur;
 		prev = l.prev;
 		for (Elem *tmp = l.first->next; tmp; tmp = tmp->next) {
+			lockCout
 			last->next = new Elem(tmp->p);
+			unlockCout
 			last = last->next;
 		}
 	}
@@ -56,7 +60,9 @@ int List::length() {
 }
 
 void List::addPCB(PCB *p) {
+	lockCout
 	Elem *tmp = new Elem(p);
+	unlockCout
 	len++;
 	last = (!first ? first : last->next) = tmp;
 }
@@ -65,7 +71,9 @@ void List::removePCB(PCB *p1) {
 	Elem *tmp = first, *prev1 = 0;
 	if (tmp && ((PCB*)(tmp->p))->getId() == p1->getId()) {
 		first = first->next;
+		lockCout
 		delete tmp;
+		unlockCout
 		return;
 	}
 	for (; tmp && ((PCB*)(tmp->p))->getId() != p1->getId(); tmp = tmp->next)
@@ -101,7 +109,9 @@ void List::removeCur() {
 	cur = cur->next;
 	(!prev ? first : prev->next) = cur;
 	if (!cur) last = prev;
+	lockCout
 	delete old;
+	unlockCout
 }
 
 

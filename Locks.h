@@ -17,7 +17,7 @@
 // -----------------
 
 extern volatile unsigned lockFlag;
-
+extern volatile int context_switch_on_demand;
 
 
 #endif /* LOCKS_H_ */
