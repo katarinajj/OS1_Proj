@@ -17,6 +17,7 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) 
 	if (stackSize < defaultStackSize) stackSize = defaultStackSize;
 	else if (stackSize > maxStackSize) stackSize = maxStackSize;
 	unsigned long numOfIndex = stackSize / sizeof(unsigned);
+
 	unsigned* st1 = new unsigned[numOfIndex];
 
 	st1[numOfIndex - 1] = 0x200;//setovan I fleg u pocetnom PSW-u za nit
@@ -35,7 +36,7 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) 
 	this->myThread = myThread;
 	this->timeSlice = timeSlice;
 	this->stack = st1;
-
+	this->waitingForThis = new List();
 }
 
 void PCB::start() {
@@ -46,16 +47,14 @@ void PCB::start() {
 void PCB::waitToComplete() {
 	if (this->state != TERMINATED) {
 		running->state = SUSPENDED;
-		//waitingForThis.add(running);
+		waitingForThis->addPCB((PCB*)running);
 		dispatch();
 	}
-
 }
 
 PCB::~PCB() {
-	delete this->stack;
-	//delete waitingForThis;
-	//delete myThread;
+	if(this->stack) delete this->stack;
+	if(myThread) delete myThread;
 }
 
 ID PCB::getId() { return id; }
@@ -63,23 +62,37 @@ ID PCB::getId() { return id; }
 ID PCB::getRunningId() {
 	return running->id;
 }
+/*
+ * PCB* List::getPCBbyId(ID id) {
+	Elem *tmp = first;
+	for (; tmp && ((PCB*)(tmp->p))->getId() != id; tmp = tmp->next);
+
+	if (!tmp) return 0; // nije ni bio u listi
+	else return (PCB*)tmp->p;
+}
+ */
+
 
 Thread * PCB::getThreadById(ID id) {
-	PCB *tmp = allPCBs->getPCBbyId(id);
-	if (!tmp) return 0;
+	PCB *tmp = 0;
+	int found = 0;
+	for(allPCBs->onFirst(); allPCBs->hasCur(); allPCBs->onNext()) {
+		tmp = (PCB*)(allPCBs->getCur());
+		if (tmp->getId() == id) { found = 1; break; }
+	}
+	if (found == 0) return 0;
 	else return tmp->myThread;
 }
 
 void PCB::wrapper() {
-
 	running->myThread->run();
-	/*
-	for (Elem *tmp = waitingForThis.first; tmp; tmp = tmp->next) {
-		tmp->p->state = READY;
-		Scheduler::put(tmp->p);
+	PCB *tmp = 0;
+	for (running->waitingForThis->onFirst(); running->waitingForThis->hasCur(); running->waitingForThis->onNext()) {
+		tmp = (PCB*)(running->waitingForThis->getCur());
+		tmp->state = READY;
+		Scheduler::put(tmp);
 	}
-	waitingForThis.deleteList();
-	*/
+	running->waitingForThis->deleteList();
 	running->state = TERMINATED;
 	dispatch();
 }

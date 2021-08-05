@@ -7,17 +7,19 @@ void List::deleteList() {
 		first = first->next;
 		delete old;
 	}
-	first = last = 0;
+	first = last = cur = prev = 0;
 	len = 0;
 }
 
 void List::copyList(const List &l) {
 	len = l.len;
 	if (l.first == 0 && l.last == 0) {
-		first = last = 0;
+		first = last = cur = prev = 0;
 	}
 	else {
 		first = last = new Elem(l.first->p);
+		cur = l.cur;
+		prev = l.prev;
 		for (Elem *tmp = l.first->next; tmp; tmp = tmp->next) {
 			last->next = new Elem(tmp->p);
 			last = last->next;
@@ -26,7 +28,7 @@ void List::copyList(const List &l) {
 }
 
 List::List() {
-	first = last = 0;
+	first = last = cur = prev = 0;
 	len = 0;
 }
 
@@ -60,27 +62,46 @@ void List::addPCB(PCB *p) {
 }
 
 void List::removePCB(PCB *p1) {
-	Elem *tmp = first, *prev = 0;
+	Elem *tmp = first, *prev1 = 0;
 	if (tmp && ((PCB*)(tmp->p))->getId() == p1->getId()) {
 		first = first->next;
 		delete tmp;
 		return;
 	}
 	for (; tmp && ((PCB*)(tmp->p))->getId() != p1->getId(); tmp = tmp->next)
-		prev = tmp;
+		prev1 = tmp;
 
 	if (!tmp) return; // nije ni bio u listi
-	prev->next = tmp->next;
+	prev1->next = tmp->next;
 	delete tmp;
 }
 
-PCB* List::getPCBbyId(ID id) {
-	Elem *tmp = first;
-	for (; tmp && ((PCB*)(tmp->p))->getId() != id; tmp = tmp->next);
-
-	if (!tmp) return 0; // nije ni bio u listi
-	else return (PCB*)tmp->p;
+void List::onFirst() {
+	cur = first;
+	prev = 0;
 }
 
+void List::onNext() {
+	prev = cur;
+	if (cur) cur = cur->next;
+}
+
+int List::hasCur() {
+	return cur != 0;
+}
+
+void* List::getCur() {
+	if (!cur) return 0;
+	return cur->p;
+}
+
+void List::removeCur() {
+	if (!cur) return;
+	Elem *old = cur;
+	cur = cur->next;
+	(!prev ? first : prev->next) = cur;
+	if (!cur) last = prev;
+	delete old;
+}
 
 

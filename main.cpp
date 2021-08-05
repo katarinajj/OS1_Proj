@@ -67,5 +67,6 @@ int main(){
 
   restore();
 
+  if (PCB::allPCBs) delete PCB::allPCBs;
   return 0;
 }

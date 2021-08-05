@@ -17,7 +17,7 @@ public:
 		}
 	};
 
-	Elem *first, *last;
+	Elem *first, *last, *cur, *prev;
 	int len;
 
 	List();
@@ -27,12 +27,18 @@ public:
 	//List& operator=(const List &l);
 
 	int length();
-
-	void addPCB(PCB *p);
-	void removePCB(PCB *p);
 	void deleteList();
 
-	PCB* getPCBbyId(ID id);
+	// PCB functions
+	void addPCB(PCB *p); // dodaje PCB na kraj liste
+	void removePCB(PCB *p);
+
+	// iterating functions
+	void onFirst();
+	void onNext();
+	int hasCur();
+	void* getCur();
+	void removeCur();
 
 private:
 	void copyList(const List &l);

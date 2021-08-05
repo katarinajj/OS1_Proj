@@ -21,7 +21,7 @@ public:
 	State state;
 
 	Thread *myThread;
-	//List waitingForThis;
+	List *waitingForThis;
 
 	static volatile PCB* running;
 	static PCB* idleThread;
