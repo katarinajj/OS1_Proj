@@ -12,39 +12,34 @@ public:
 		Elem(void *p1, Elem *next1 = 0) {
 			p = p1; next = next1;
 		}
-		~Elem() {
-			p = 0; next = 0;
-		}
+		~Elem() { p = 0; next = 0; }
 	};
 
 	Elem *first, *last, *cur, *prev;
 	int len;
 
 	List();
-	//List(const List &l);
 	~List();
-
-	//List& operator=(const List &l);
 
 	int length();
 	void deleteList();
 
+	// QUEUE functions
+	void insertAtEnd(void *q);
+	void* removeAtFront();
+
 	// PCB functions
-	void addPCB(PCB *p); // dodaje PCB na kraj liste
-	void removePCB(PCB *p);
+	void removePCB(PCB *p1);
 
 	// iterating functions
 	void onFirst();
 	void onNext();
 	int hasCur();
 	void* getCur();
-	void removeCur();
 
 private:
-	void copyList(const List &l);
+
 };
-
-
 
 
 #endif /* LIST_H_ */

@@ -1,10 +1,10 @@
 #ifndef PCB_H_
 #define PCB_H_
 
-#include "Locks.h"
 #include "thread.h"
 #include "SCHEDULE.h"
 #include "list.h"
+#include "system.h"
 
 const StackSize maxStackSize = 65536;
 
@@ -25,11 +25,6 @@ public:
 	Thread *myThread;
 	List *waitingForThis;
 
-	static volatile PCB* running;
-	static PCB* mainPCB;
-	static PCB* idlePCB;
-	static List* allPCBs;
-
 	void start();
 	void waitToComplete();
 	~PCB();
@@ -39,11 +34,12 @@ public:
 
 	PCB (StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)() = PCB::wrapper);
 	static void wrapper();
+	PCB();
 
 private:
 	static ID staticID;
 	ID id;
-	PCB();
+
 };
 
 

@@ -2,22 +2,27 @@
 
 Thread::Thread (StackSize stackSize, Time timeSlice) {
 	lockCout
-	this->myPCB = new PCB(stackSize, timeSlice, this);
+	myPCB = new PCB(stackSize, timeSlice, this);
+	allPCBs->insertAtEnd(myPCB);
 	unlockCout
-	PCB::allPCBs->addPCB(this->myPCB);
 }
 
 Thread::~Thread () {
-	if (myPCB) PCB::allPCBs->removePCB(myPCB);
-	myPCB = 0;
-}
-
-void Thread::waitToComplete() {
-	if (myPCB) myPCB->waitToComplete();
+	lockCout
+	if (myPCB) {
+		allPCBs->removePCB(myPCB);
+		delete myPCB; //TODO: pazi
+		myPCB = 0;
+	}
+	unlockCout
 }
 
 void Thread::start() {
 	if (myPCB) myPCB->start();
+}
+
+void Thread::waitToComplete() {
+	if (myPCB) myPCB->waitToComplete();
 }
 
 ID Thread::getId() {

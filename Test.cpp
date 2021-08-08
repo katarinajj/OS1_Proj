@@ -1,7 +1,7 @@
 #include "thread.h"
 
 /*
- 	 Test: idleThread
+	Test: cekanje niti
 */
 
 #include <DOS.H>
@@ -20,16 +20,11 @@ int syncPrintf(const char *format, ...)
 	return res;
 }
 
-void tick(){}
-
 class TestThread : public Thread
 {
-private:
-	TestThread **t;
-
 public:
 
-	TestThread(TestThread **thread): Thread(), t(thread){}
+	TestThread(): Thread() {};
 	~TestThread()
 	{
 		waitToComplete();
@@ -42,22 +37,67 @@ protected:
 
 void TestThread::run()
 {
-	(*t)->waitToComplete();
+	syncPrintf("Thread %d: loop1 starts\n", getId());
+
+	for(int i=0;i<32000;i++)
+	{
+		for (int j = 0; j < 32000; j++);
+	}
+
+	syncPrintf("Thread %d: loop1 ends, dispatch\n",getId());
+
+	dispatch();
+
+	syncPrintf("Thread %d: loop2 starts\n",getId());
+
+	for (int k = 0; k < 20000; k++);
+
+	syncPrintf("Thread %d: loop2 ends\n",getId());
+
+
 }
 
+class WaitThread: public Thread
+{
+private:
+	TestThread *t1_,*t2_;
+
+public:
+	WaitThread(TestThread *t1, TestThread *t2): Thread()
+	{
+		t1_ = t1;
+		t2_ = t2;
+	};
+
+	~WaitThread()
+		{
+			waitToComplete();
+		}
+
+protected:
+
+	void run()
+	{
+		syncPrintf("Starting tests...\n");
+		t1_->waitToComplete();
+		syncPrintf("Test 1 completed!\n");
+		t2_->waitToComplete();
+		syncPrintf("Test 2 completed!\n");
+	}
+};
+
+void tick() {}
 
 int userMain(int argc, char** argv)
 {
-	syncPrintf("Test starts.\n");
-	TestThread *t1,*t2;
-	t1 = new TestThread(&t2);
-	t2 = new TestThread(&t1);
-	t1->start();
-	t2->start();
-	delete t1;
-	delete t2;
-	syncPrintf("Test ends.\n");
-	return 0;
+	syncPrintf("User main starts\n");
+	TestThread t1,t2;
+	WaitThread w(&t1,&t2);
+	t1.start();
+	t2.start();
+	w.start();
+	syncPrintf("User main ends\n");
+	return 16;
 }
 
 

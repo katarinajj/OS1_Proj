@@ -1,4 +1,4 @@
-#include "timer.h"
+#include "system.h"
 
 int userMain(int argc, char *arvg[]);
 
@@ -6,11 +6,13 @@ int main(int argc, char *argv[]){
 
   inic();
 
+  allocateAll();
+
   int ret = userMain(argc, argv);
 
   restore();
 
-  if (PCB::allPCBs) delete PCB::allPCBs;
+  deleteAll();
 
   return ret;
 }

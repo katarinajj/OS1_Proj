@@ -7,18 +7,9 @@ void idleBody() {
 
 ID PCB::staticID = 0;
 
-PCB* PCB::mainPCB = new PCB();
-
-PCB* PCB::idlePCB = new PCB(defaultStackSize, 1, 0, idleBody);
-
-volatile PCB* PCB::running = mainPCB;
-
-List* PCB::allPCBs = new List();
-
 PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) {
 	// TODO: ispravi ovo za velicinu steka
-	if (stackSize < defaultStackSize) stackSize = defaultStackSize;
-	else if (stackSize > maxStackSize) stackSize = maxStackSize;
+	if (stackSize > maxStackSize) stackSize = maxStackSize;
 
 	unsigned long numOfIndex = stackSize / sizeof(unsigned);
 
@@ -38,51 +29,59 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) 
 #endif
 
 	this->state = INITIALIZED;
-	this->id = ++staticID;
 	this->myThread = myThread;
 	this->timeSlice = timeSlice;
 	this->stack = st1;
 
 	lockCout
+	this->id = ++staticID;
 	this->waitingForThis = new List();
 	unlockCout
 }
 
-PCB::PCB() { // konstruktor za mainPCB
+PCB::PCB() {
 	this->ss = this->sp = this->bp = 0;
 	this->stack = 0;
-
-	this->timeSlice = defaultTimeSlice;
-	this->state = READY; // ?
-
 	this->myThread = 0;
 	this->waitingForThis = 0;
+
+	this->timeSlice = defaultTimeSlice;
+	this->state = READY; // TODO: proveri je l bitno
+
+	lockCout
 	this->id = ++staticID;
+	unlockCout
 }
 
 void PCB::start() {
+	lockCout
 	if (this->state == INITIALIZED) {
 		this->state = READY;
 		Scheduler::put(this);
 	}
+	unlockCout
 }
 
 void PCB::waitToComplete() {
+	lockCout
 	if (this->state != TERMINATED) {
 		running->state = SUSPENDED;
-		waitingForThis->addPCB((PCB*)running);
+		waitingForThis->insertAtEnd((PCB*)running);
+		unlockCout
 		dispatch();
+	}
+	else {
+		unlockCout
 	}
 }
 
 PCB::~PCB() {
+	lockCout
 	if(this->stack) {
-		lockCout
 		delete [] this->stack;
-		unlockCout
 		this->stack = 0;
 	}
-	//if(myThread) delete myThread;
+	unlockCout
 }
 
 ID PCB::getId() { return id; }
@@ -94,24 +93,27 @@ ID PCB::getRunningId() {
 Thread * PCB::getThreadById(ID id) {
 	PCB *tmp = 0;
 	int found = 0;
+	lockCout
 	for(allPCBs->onFirst(); allPCBs->hasCur(); allPCBs->onNext()) {
 		tmp = (PCB*)(allPCBs->getCur());
 		if (tmp->getId() == id) { found = 1; break; }
 	}
+	unlockCout
 	if (found == 0) return 0;
 	else return tmp->myThread;
 }
 
 void PCB::wrapper() {
 	running->myThread->run();
-	PCB *tmp = 0;
-	for (running->waitingForThis->onFirst(); running->waitingForThis->hasCur(); running->waitingForThis->onNext()) {
-		tmp = (PCB*)(running->waitingForThis->getCur());
+	lockCout
+	PCB *tmp = (PCB*)(running->waitingForThis->removeAtFront());
+	while (tmp != 0) {
 		tmp->state = READY;
 		Scheduler::put(tmp);
+		tmp = (PCB*)(running->waitingForThis->removeAtFront());
 	}
-	running->waitingForThis->deleteList();
 	running->state = TERMINATED;
+	unlockCout
 	dispatch();
 }
 

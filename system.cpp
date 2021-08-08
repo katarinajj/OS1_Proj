@@ -1,24 +1,46 @@
 #include <iostream.h>
+#include "pcb.h"
 
-#include "timer.h"
-
-volatile unsigned lockFlag = 1;
+volatile int lockFlag = 0;
+volatile unsigned context_switch_on_demand = 0;
+volatile int counter = defaultTimeSlice;
 
 unsigned tbp;
 unsigned tsp;
 unsigned tss;
 
-volatile int counter = 20;
-volatile int context_switch_on_demand = 0;
+PCB* mainPCB = 0;
+PCB* idlePCB = 0;
+volatile PCB* running = 0;
+List* allPCBs = 0;
 
-// po ulasku u timer() I bit je sigurno 0
-void interrupt timer(){	// prekidna rutina
+void myPrintf() {
+#ifndef BCC_BLOCK_IGNORE
+	lock
+#endif
+	printf("GRESKA\n");
+	unlock
+}
+
+void allocateAll() {
+	lockCout
+
+	mainPCB = new PCB();
+	idlePCB = new PCB(defaultStackSize, 1, 0, idleBody);
+	running = mainPCB;
+	allPCBs = new List();
+
+	unlockCout
+}
+
+
+void interrupt timer(){
 
 	if (!context_switch_on_demand) { asm int 60h; tick(); }
 	if (!context_switch_on_demand && counter > 0) { counter--; }
 
-	if ((counter == 0 && PCB::running->timeSlice != 0) || context_switch_on_demand) {
-		if (lockFlag) {
+	if ((counter == 0 && running->timeSlice != 0) || context_switch_on_demand) {
+		if (lockFlag == 0) {
 			context_switch_on_demand = 0;
 			asm {
 				mov tsp, sp
@@ -26,9 +48,9 @@ void interrupt timer(){	// prekidna rutina
 				mov tbp, bp
 			}
 
-			PCB::running->sp = tsp;
-			PCB::running->ss = tss;
-			PCB::running->bp = tbp;
+			running->sp = tsp;
+			running->ss = tss;
+			running->bp = tbp;
 
 			/* ---------- ispis unutar prekidne rutine
 			lockFlag = 0;
@@ -37,16 +59,15 @@ void interrupt timer(){	// prekidna rutina
 			lockFlag = 1;
 			*/
 
+			if (running->state == READY) Scheduler::put((PCB*)running);
+			running = Scheduler::get();
+			if (running == 0) running = idlePCB;
 
-			if (PCB::running->state == READY) Scheduler::put((PCB*) PCB::running);
-			PCB::running = Scheduler::get();
-			if (PCB::running == 0) PCB::running = PCB::idlePCB;
+			tsp = running->sp;
+			tss = running->ss;
+			tbp = running->bp;
 
-			tsp = PCB::running->sp;
-			tss = PCB::running->ss;
-			tbp = PCB::running->bp;
-
-			counter = PCB::running->timeSlice;
+			counter = running->timeSlice;
 
 			asm {
 				mov sp, tsp
@@ -62,7 +83,9 @@ unsigned oldTimerOFF, oldTimerSEG; // stara prekidna rutina
 
 // postavlja novu prekidnu rutinu
 void inic(){
+#ifndef BCC_BLOCK_IGNORE
 	lock
+#endif
 	asm{
 		push es
 		push ax
@@ -90,7 +113,9 @@ void inic(){
 }
 
 void restore(){
+#ifndef BCC_BLOCK_IGNORE
 	lock
+#endif
 	asm {
 		push es
 		push ax
@@ -110,8 +135,21 @@ void restore(){
 }
 
 void dispatch() {
+#ifndef BCC_BLOCK_IGNORE
 	lock
+#endif
 	context_switch_on_demand = 1;
 	timer();
 	unlock
 }
+
+void deleteAll() {
+	lockCout
+	if (allPCBs) delete allPCBs;
+	if (mainPCB) delete mainPCB;
+	if (idlePCB) delete idlePCB;
+	unlockCout
+}
+
+
+

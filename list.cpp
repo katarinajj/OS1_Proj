@@ -13,64 +13,41 @@ void List::deleteList() {
 	len = 0;
 }
 
-void List::copyList(const List &l) {
-	len = l.len;
-	if (l.first == 0 && l.last == 0) {
-		first = last = cur = prev = 0;
-	}
-	else {
-		first = last = new Elem(l.first->p);
-		cur = l.cur;
-		prev = l.prev;
-		for (Elem *tmp = l.first->next; tmp; tmp = tmp->next) {
-			lockCout
-			last->next = new Elem(tmp->p);
-			unlockCout
-			last = last->next;
-		}
-	}
-}
-
 List::List() {
 	first = last = cur = prev = 0;
 	len = 0;
 }
 
-/*
-List::List(const List &l) {
-	copyList(l);
-}
-*/
+List::~List() { deleteList(); }
 
-List::~List() {
-	deleteList();
-}
+int List::length() { return len; }
 
-/*
-List& List::operator=(const List &l) {
-	if (this != &l) {
-		deleteList();
-		copyList(l);
-	}
-	return *this;
-}*/
-
-int List::length() {
-	return len;
-}
-
-void List::addPCB(PCB *p) {
+void List::insertAtEnd(void *q) {
 	lockCout
-	Elem *tmp = new Elem(p);
+	Elem *tmp = new Elem(q);
 	unlockCout
 	len++;
 	last = (!first ? first : last->next) = tmp;
+}
+
+void* List::removeAtFront() {
+	if (!first) return 0;
+	Elem *old = first;
+	void *ret = old->p;
+	first = first->next;
+	if (!first) last = 0;
+	len--;
+	lockCout
+	delete old;
+	unlockCout
+	return ret;
 }
 
 void List::removePCB(PCB *p1) {
 	Elem *tmp = first, *prev1 = 0;
 	if (tmp && ((PCB*)(tmp->p))->getId() == p1->getId()) {
 		first = first->next;
+		len--;
 		lockCout
 		delete tmp;
 		unlockCout
@@ -81,37 +58,28 @@ void List::removePCB(PCB *p1) {
 
 	if (!tmp) return; // nije ni bio u listi
 	prev1->next = tmp->next;
+	len--;
+	lockCout
 	delete tmp;
+	unlockCout
 }
 
-void List::onFirst() {
-	cur = first;
-	prev = 0;
-}
+// kod po ugledu na vezbe iz OOP1
+
+void List::onFirst() { cur = first; prev = 0; }
 
 void List::onNext() {
 	prev = cur;
 	if (cur) cur = cur->next;
 }
 
-int List::hasCur() {
-	return cur != 0;
-}
+int List::hasCur() { return cur != 0; }
 
 void* List::getCur() {
 	if (!cur) return 0;
 	return cur->p;
 }
 
-void List::removeCur() {
-	if (!cur) return;
-	Elem *old = cur;
-	cur = cur->next;
-	(!prev ? first : prev->next) = cur;
-	if (!cur) last = prev;
-	lockCout
-	delete old;
-	unlockCout
-}
+
 
 
