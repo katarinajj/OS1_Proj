@@ -9,7 +9,7 @@ public:
 	struct Elem {
 		void *p;
 		Elem *next;
-		Elem(void *p1, Elem *next1 = 0) {
+		Elem (void *p1, Elem *next1 = 0) {
 			p = p1; next = next1;
 		}
 		~Elem() { p = 0; next = 0; }
@@ -36,6 +36,8 @@ public:
 	void onNext();
 	int hasCur();
 	void* getCur();
+
+	void ispis();
 
 private:
 

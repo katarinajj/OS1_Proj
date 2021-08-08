@@ -1,14 +1,32 @@
+/**
+ * USER3.CPP
+ *
+ * Tests threads which simply echo the message passed a specified amount of
+ * times in specified intervals.
+ */
 #include "thread.h"
-
-/*
-	Test: cekanje niti
-*/
+#include "system.h"
 
 #include <DOS.H>
 #include <STDIO.H>
 #include <STDARG.H>
 
-int syncPrintf(const char *format, ...)
+void dumbSleep(int delay) {
+
+	for (int k = 0; k < 10; ++k) {
+		for (int i = 0; i < 1000; ++i) {
+		          for (int j = 0; j < delay; ++j);
+		      }
+	}
+
+	/*
+	for (int i = 0; i < 1000; ++i) {
+			 for (int j = 0; j < delay; ++j);
+	}*/
+
+}
+
+int syncPrint(const char *format, ...)
 {
 	int res;
 	va_list args;
@@ -20,84 +38,56 @@ int syncPrintf(const char *format, ...)
 	return res;
 }
 
-class TestThread : public Thread
-{
-public:
-
-	TestThread(): Thread() {};
-	~TestThread()
-	{
-		waitToComplete();
-	}
-protected:
-
-	void run();
-
+class EchoThread : public Thread {
+    public:
+        EchoThread(const char* message, unsigned times=1, unsigned delay=1) :
+            Thread(1024, 1), message(message), times(times), delay(delay) {}
+        virtual void run();
+        ~EchoThread() {
+            waitToComplete();
+        }
+    private:
+        const char* message;
+        unsigned times;
+        unsigned delay;
 };
 
-void TestThread::run()
-{
-	syncPrintf("Thread %d: loop1 starts\n", getId());
-
-	for(int i=0;i<32000;i++)
-	{
-		for (int j = 0; j < 32000; j++);
-	}
-
-	syncPrintf("Thread %d: loop1 ends, dispatch\n",getId());
-
-	dispatch();
-
-	syncPrintf("Thread %d: loop2 starts\n",getId());
-
-	for (int k = 0; k < 20000; k++);
-
-	syncPrintf("Thread %d: loop2 ends\n",getId());
-
-
+void EchoThread::run() {
+    //syncPrint("First message from thread %d\n", getId());
+    for (unsigned i = 0; i < times; ++i) {
+        syncPrint("%s from thread %d\n", message, getId());
+        dumbSleep(delay * 1000);
+    }
+    //syncPrint("Last message from thread %d\n", getId());
 }
-
-class WaitThread: public Thread
-{
-private:
-	TestThread *t1_,*t2_;
-
-public:
-	WaitThread(TestThread *t1, TestThread *t2): Thread()
-	{
-		t1_ = t1;
-		t2_ = t2;
-	};
-
-	~WaitThread()
-		{
-			waitToComplete();
-		}
-
-protected:
-
-	void run()
-	{
-		syncPrintf("Starting tests...\n");
-		t1_->waitToComplete();
-		syncPrintf("Test 1 completed!\n");
-		t2_->waitToComplete();
-		syncPrintf("Test 2 completed!\n");
-	}
-};
 
 void tick() {}
 
-int userMain(int argc, char** argv)
-{
-	syncPrintf("User main starts\n");
-	TestThread t1,t2;
-	WaitThread w(&t1,&t2);
-	t1.start();
-	t2.start();
-	w.start();
-	syncPrintf("User main ends\n");
-	return 16;
+int userMain(int argc, char* argv[]) {
+    (void) argc;
+    (void) argv;
+    lockCout
+    EchoThread** threads = new EchoThread*[256];
+    unlockCout
+    for (unsigned i = 0; i < 256; ++i) {
+        lockCout
+        threads[i] = new EchoThread("ECHO", i % 4, i % 10);
+        unlockCout
+        threads[i]->start();
+        if (i % 20 == 0) {
+            syncPrint("Dispatching main\n");
+            dispatch();
+        }
+    }
+    for (unsigned j = 0; j < 256; ++j) {
+        // We cannot wait for a thread to complete while interrupts are locked!
+        threads[j]->waitToComplete();
+        lockCout
+        delete threads[j];
+        unlockCout
+    }
+    lockCout
+    delete[] threads;
+    unlockCout
+    return 0;
 }
-
-

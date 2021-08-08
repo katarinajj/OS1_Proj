@@ -81,6 +81,7 @@ PCB::~PCB() {
 		delete [] this->stack;
 		this->stack = 0;
 	}
+
 	unlockCout
 }
 
