@@ -1,10 +1,11 @@
-#ifndef SYSTEM_H_
-#define SYSTEM_H_
+#ifndef ASYSTEM_H_
+#define ASYSTEM_H_
 
 #include <stdio.h>
 
 class PCB;
 class List;
+class KernelSem;
 
 // hard lock - zabranjuje SVE maskirajuce prekide - dozvoljava gnezdjenje
 #define lock asm { pushf; cli; }
@@ -30,10 +31,17 @@ extern unsigned tbp;
 extern unsigned tsp;
 extern unsigned tss;
 
-extern PCB* mainPCB;
-extern PCB* idlePCB;
-extern volatile PCB* running;
-extern List* allPCBs;
+class Kernel {
+public:
+	static PCB* mainPCB;
+	static PCB* idlePCB;
+	static volatile PCB* running;
+	static List* allPCBs;
+	static List* allKernelSems;
+
+	static void deleteAll();
+};
+
 
 // deklaracije funkcija
 
@@ -42,9 +50,7 @@ void myPrintf();
 void tick();
 void inic();
 void restore();
-void allocateAll();
-void deleteAll();
 void interrupt timer();
 
 
-#endif /* SYSTEM_H_ */
+#endif /* ASYSTEM_H_ */

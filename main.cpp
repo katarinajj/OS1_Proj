@@ -1,18 +1,18 @@
-#include "system.h"
+#include "asystem.h"
 
-int userMain(int argc, char *arvg[]);
+int userMain(int argc, char* argv[]);
 
 int main(int argc, char *argv[]){
 
-  inic();
+	inic();
 
-  allocateAll();
+	//Kernel::allocateAll();
 
-  int ret = userMain(argc, argv);
+	int ret = userMain(argc, argv);
 
-  restore();
+	restore();
 
-  deleteAll();
+	Kernel::deleteAll();
 
-  return ret;
+	return ret;
 }

@@ -2,6 +2,7 @@
 #define LIST_H_
 
 class PCB;
+class KernelSem;
 
 class List {
 
@@ -30,6 +31,8 @@ public:
 
 	// PCB functions
 	void removePCB(PCB *p1);
+	// KernelSem functions
+	void removeKernelSem(KernelSem *s);
 
 	// iterating functions
 	void onFirst();

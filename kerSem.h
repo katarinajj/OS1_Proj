@@ -1,30 +1,35 @@
+#ifndef KERSEM_H_
+#define KERSEM_H_
 
-// imam globalnu
-
+#include "listTime.h"
 #include "semaphor.h"
-#include "list.h"
-#include "timeList.h"
-
-List* allKerSems;
+#include "pcb.h"
 
 class KernelSem {
 public:
 	Semaphore *mySem;
-	List *blockedPCBs;
-	volatile timeList *waitingPCBs;
-	
-	KernelSem (int init, Semaphore *mySem = 0);
-	~KernelSem ();
-	
-	int wait (Time maxTimeToWait);
-	void signal();
-	
-	int val () const; // Returns the current value of the semaphore
 
-	void block();
+	List *blockedPCBs;
+	//volatile TimeList *waitingPCBs;
+	TimeList *waitingPCBs;
+
+	KernelSem(int init, Semaphore *mySem);
+	~KernelSem();
+
+	int wait(Time maxTimeToWait);
+	void signal();
+
+	int val() const;
+
+	int block();
+	int blockTime(Time maxTimeToWait);
 	void unblock();
+	void incVal();
 
 private:
 	int value;
-	
-}
+};
+
+
+
+#endif /* KERSEM_H_ */

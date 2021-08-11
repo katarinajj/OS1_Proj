@@ -2,7 +2,9 @@
 #include "pcb.h"
 
 void idleBody() {
-	while(1);
+	while(1) {
+		//printf("IDLE\n");
+	}
 }
 
 ID PCB::staticID = 0;
@@ -32,6 +34,7 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) 
 	this->myThread = myThread;
 	this->timeSlice = timeSlice;
 	this->stack = st1;
+	this->unblockedByTime = 0;
 
 	lockCout
 	this->id = ++staticID;
@@ -44,6 +47,7 @@ PCB::PCB() {
 	this->stack = 0;
 	this->myThread = 0;
 	this->waitingForThis = 0;
+	this->unblockedByTime = 0;
 
 	this->timeSlice = defaultTimeSlice;
 	this->state = READY; // TODO: proveri je l bitno
@@ -65,8 +69,8 @@ void PCB::start() {
 void PCB::waitToComplete() {
 	lockCout
 	if (this->state != TERMINATED) {
-		running->state = SUSPENDED;
-		waitingForThis->insertAtEnd((PCB*)running);
+		Kernel::running->state = SUSPENDED;
+		waitingForThis->insertAtEnd((PCB*)Kernel::running);
 		unlockCout
 		dispatch();
 	}
@@ -88,15 +92,15 @@ PCB::~PCB() {
 ID PCB::getId() { return id; }
 
 ID PCB::getRunningId() {
-	return running->id;
+	return Kernel::running->id;
 }
 
 Thread * PCB::getThreadById(ID id) {
 	PCB *tmp = 0;
 	int found = 0;
 	lockCout
-	for(allPCBs->onFirst(); allPCBs->hasCur(); allPCBs->onNext()) {
-		tmp = (PCB*)(allPCBs->getCur());
+	for(Kernel::allPCBs->onFirst(); Kernel::allPCBs->hasCur(); Kernel::allPCBs->onNext()) {
+		tmp = (PCB*)(Kernel::allPCBs->getCur());
 		if (tmp->getId() == id) { found = 1; break; }
 	}
 	unlockCout
@@ -105,15 +109,15 @@ Thread * PCB::getThreadById(ID id) {
 }
 
 void PCB::wrapper() {
-	running->myThread->run();
+	Kernel::running->myThread->run();
 	lockCout
-	PCB *tmp = (PCB*)(running->waitingForThis->removeAtFront());
+	PCB *tmp = (PCB*)(Kernel::running->waitingForThis->removeAtFront());
 	while (tmp != 0) {
 		tmp->state = READY;
 		Scheduler::put(tmp);
-		tmp = (PCB*)(running->waitingForThis->removeAtFront());
+		tmp = (PCB*)(Kernel::running->waitingForThis->removeAtFront());
 	}
-	running->state = TERMINATED;
+	Kernel::running->state = TERMINATED;
 	unlockCout
 	dispatch();
 }

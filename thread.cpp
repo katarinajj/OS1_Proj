@@ -3,14 +3,14 @@
 Thread::Thread (StackSize stackSize, Time timeSlice) {
 	lockCout
 	myPCB = new PCB(stackSize, timeSlice, this);
-	allPCBs->insertAtEnd(myPCB);
+	Kernel::allPCBs->insertAtEnd(myPCB);
 	unlockCout
 }
 
 Thread::~Thread () {
 	lockCout
 	if (myPCB) {
-		allPCBs->removePCB(myPCB);
+		Kernel::allPCBs->removePCB(myPCB);
 		delete myPCB; //TODO: pazi
 		myPCB = 0;
 	}

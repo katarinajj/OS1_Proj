@@ -1,52 +1,80 @@
+#include "kerSem.h"
 
-KerSem::KerSem(int init, Semaphore *mySem) {
+KernelSem::KernelSem(int init, Semaphore *mySem) {
 	this->value = init;
 	this->mySem = mySem;
-	
+
 	lockCout
-	blockedPCBs = new List();
-	waitingPCBs = new TimeList(this);	
+	this->blockedPCBs = new List();
+	this->waitingPCBs = new TimeList(this);
 	unlockCout
 }
 
-KerSem::~KerSem() {
-
-}
-
-int KerSem::wait(Time maxTimeToWait) {
-	if (maxTimeToWait == 0) {
-		lockCout
-		if (--val < 0) block();
-		unlockCout
-		return 1;
-		
-	}
-	else {
-		
-	}
-}
-
-void KerSem::signal() {
+KernelSem::~KernelSem() {
 	lockCout
-	if (++val <= 0) unblock();
+	delete blockedPCBs;
+	delete waitingPCBs;
 	unlockCout
 }
 
-int KerSem::val() const {
-	return this->value;
+int KernelSem::wait(Time maxTimeToWait) {
+	lockCout
+	int ret = 0;
+	if (--value < 0) {
+		if (maxTimeToWait == 0) { unlockCout; ret = block(); }
+		else { unlockCout; ret = blockTime(maxTimeToWait); }
+	}
+	else { unlockCout; ret = 1; }
+	return ret;
 }
 
-void KerSem::block() {
+void KernelSem::signal() {
 	lockCout
-	running->state = SUSPENDED;
-	blockedPCBs.insertAtEnd((PCB*) running);
-	context_switch_on_demand = 1;
+	if (++value <= 0) unblock();
+	unlockCout
+}
+
+int KernelSem::val() const { return this->value; }
+
+
+int KernelSem::block() {
+	lockCout
+	Kernel::running->state = SUSPENDED;
+	blockedPCBs->insertAtEnd((PCB*) Kernel::running);
 	unlockCout
 	dispatch();
+	return 1;
 }
 
-void KerSem::unblock() {
-	PCB *tmp = blockedPCBs.removeAtFront();
+int KernelSem::blockTime(Time maxTimeToWait) {
+	lockCout
+	Kernel::running->state = SUSPENDED;
+	waitingPCBs->insert(maxTimeToWait, (PCB*) Kernel::running);
+	//waitingPCBs->ispis();
+	unlockCout
+	dispatch();
+
+	lockCout
+	if (Kernel::running->unblockedByTime == 1) {
+		Kernel::running->unblockedByTime = 0;
+		unlockCout
+		return 0;
+	}
+	else { unlockCout; return 1; }
+}
+
+void KernelSem::unblock() {
+	PCB *tmp = (PCB*)(blockedPCBs->removeAtFront());
+	if (!tmp) tmp = waitingPCBs->removeAtFront();
+
 	tmp->state = READY;
 	Scheduler::put(tmp);
 }
+
+void KernelSem::incVal() {
+	lockCout
+	this->value++;
+	unlockCout
+}
+
+

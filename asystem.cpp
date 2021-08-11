@@ -1,5 +1,5 @@
 #include <iostream.h>
-#include "pcb.h"
+#include "kerSem.h"
 
 volatile int lockFlag = 0;
 volatile unsigned context_switch_on_demand = 0;
@@ -9,10 +9,13 @@ unsigned tbp;
 unsigned tsp;
 unsigned tss;
 
-PCB* mainPCB = 0;
-PCB* idlePCB = 0;
-volatile PCB* running = 0;
-List* allPCBs = 0;
+// da li ovo treba lockovati?
+PCB* Kernel::mainPCB = new PCB();
+PCB* Kernel::idlePCB = new PCB(defaultStackSize, 1, 0, idleBody);
+volatile PCB* Kernel::running = mainPCB;
+List* Kernel::allPCBs = new List();
+List* Kernel::allKernelSems = new List();
+
 
 void myPrintf() {
 #ifndef BCC_BLOCK_IGNORE
@@ -22,24 +25,21 @@ void myPrintf() {
 	unlock
 }
 
-void allocateAll() {
-	lockCout
-
-	mainPCB = new PCB();
-	idlePCB = new PCB(defaultStackSize, 1, 0, idleBody);
-	running = mainPCB;
-	allPCBs = new List();
-
-	unlockCout
-}
-
-
 void interrupt timer(){
 
 	if (!context_switch_on_demand) { asm int 60h; tick(); }
 	if (!context_switch_on_demand && counter > 0) { counter--; }
 
-	if ((counter == 0 && running->timeSlice != 0) || context_switch_on_demand) {
+	// dodatak za semafore
+
+	if (!context_switch_on_demand) {
+
+		for (Kernel::allKernelSems->onFirst(); Kernel::allKernelSems->hasCur(); Kernel::allKernelSems->onNext()) {
+			((KernelSem*)(Kernel::allKernelSems->getCur()))->waitingPCBs->removeTimer();
+		}
+	}
+
+	if ((counter == 0 && Kernel::running->timeSlice != 0) || context_switch_on_demand) {
 		if (lockFlag == 0) {
 			context_switch_on_demand = 0;
 			asm {
@@ -48,9 +48,9 @@ void interrupt timer(){
 				mov tbp, bp
 			}
 
-			running->sp = tsp;
-			running->ss = tss;
-			running->bp = tbp;
+			Kernel::running->sp = tsp;
+			Kernel::running->ss = tss;
+			Kernel::running->bp = tbp;
 
 			/* ---------- ispis unutar prekidne rutine
 			lockFlag = 0;
@@ -59,15 +59,16 @@ void interrupt timer(){
 			lockFlag = 1;
 			*/
 
-			if (running->state == READY) Scheduler::put((PCB*)running);
-			running = Scheduler::get();
-			if (running == 0) running = idlePCB;
 
-			tsp = running->sp;
-			tss = running->ss;
-			tbp = running->bp;
+			if (Kernel::running->state == READY) Scheduler::put((PCB*)Kernel::running);
+			Kernel::running = Scheduler::get();
+			if (Kernel::running == 0) Kernel::running = Kernel::idlePCB;
 
-			counter = running->timeSlice;
+			tsp = Kernel::running->sp;
+			tss = Kernel::running->ss;
+			tbp = Kernel::running->bp;
+
+			counter = Kernel::running->timeSlice;
 
 			asm {
 				mov sp, tsp
@@ -143,11 +144,12 @@ void dispatch() {
 	unlock
 }
 
-void deleteAll() {
+void Kernel::deleteAll() {
 	lockCout
-	if (allPCBs) delete allPCBs;
-	if (mainPCB) delete mainPCB;
-	if (idlePCB) delete idlePCB;
+	if (Kernel::allPCBs) delete Kernel::allPCBs;
+	if (Kernel::mainPCB) delete Kernel::mainPCB;
+	if (Kernel::idlePCB) delete Kernel::idlePCB;
+	if (Kernel::allKernelSems) delete Kernel::allKernelSems;
 	unlockCout
 }
 

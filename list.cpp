@@ -16,9 +16,12 @@ void List::deleteList() {
 	unlockCout
 }
 
+
 List::List() {
+	lockCout
 	first = last = cur = prev = 0;
 	len = 0;
+	unlockCout
 }
 
 List::~List() { deleteList(); }
@@ -58,30 +61,51 @@ void* List::removeAtFront() {
 	return ret;
 }
 
-void List::removePCB(PCB *p1) {
-	lockCout
-
+void List::removePCB(PCB *p1) { // obrisala sam okruzujuce lockove
 	Elem *tmp = first, *prev1 = 0;
 	if (tmp && ((PCB*)(tmp->p))->getId() == p1->getId()) {
 		first = first->next;
 		len--;
+
 		lockCout
 		delete tmp;
 		unlockCout
 
-		unlockCout
 		return;
 	}
 	for (; tmp && ((PCB*)(tmp->p))->getId() != p1->getId(); tmp = tmp->next)
 		prev1 = tmp;
 
-	if (!tmp) { unlockCout; return; }// nije ni bio u listi
+	if (!tmp) return; // nije ni bio u listi
 	prev1->next = tmp->next;
 	len--;
+
 	lockCout
 	delete tmp;
 	unlockCout
+}
 
+void List::removeKernelSem(KernelSem *s) {
+	Elem *tmp = first, *prev1 = 0;
+	if (tmp && (KernelSem*)(tmp->p) == s) {
+		first = first->next;
+		len--;
+
+		lockCout
+		delete tmp;
+		unlockCout
+
+		return;
+	}
+	for (; tmp && (KernelSem*)(tmp->p) != s; tmp = tmp->next)
+		prev1 = tmp;
+
+	if (!tmp) return; // nije ni bio u listi
+	prev1->next = tmp->next;
+	len--;
+
+	lockCout
+	delete tmp;
 	unlockCout
 }
 
@@ -113,9 +137,10 @@ void List::ispis() {
 #ifndef BCC_BLOCK_IGNORE
 	lock
 #endif
+	printf("Pocinjem ispis liste: %d elem\n", this->len);
 	Elem *tmp = first;
-	while(tmp) {
-		printf("%d\n", *((int*)(tmp->p)));
+	while (tmp != 0) {
+		printf("Element: %p\n", (KernelSem*)(tmp->p));
 		tmp = tmp->next;
 	}
 	unlock

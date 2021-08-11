@@ -1,15 +1,18 @@
+#include "kerSem.h"
 
 Semaphore::Semaphore(int init) {
 	lockCout
-	myImpl = new KerSem(init, this);
-	allKerSems->insertAtEnd(myImpl);
+	if (init < 0) init = 0;
+	myImpl = new KernelSem(init, this);
+	Kernel::allKernelSems->insertAtEnd(myImpl);
+	Kernel::allKernelSems->ispis();
 	unlockCout
 }
 
 Semaphore::~Semaphore() {
 	lockCout
 	if (myImpl) {
-		allKerSems->removeKerSem(myImpl);
+		Kernel::allKernelSems->removeKernelSem(myImpl);
 		delete myImpl;
 		myImpl = 0;
 	}
@@ -18,6 +21,7 @@ Semaphore::~Semaphore() {
 
 int Semaphore::wait(Time maxTimeToWait) {
 	if (myImpl) return myImpl->wait(maxTimeToWait);
+	else return -1; // TODO: ?
 }
 
 void Semaphore::signal() {
@@ -26,4 +30,8 @@ void Semaphore::signal() {
 
 int Semaphore::val() const {
 	if (myImpl) return myImpl->val();
+	else return -1; // TODO: ?
 }
+
+
+

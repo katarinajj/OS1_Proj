@@ -1,14 +1,14 @@
 #ifndef PCB_H_
 #define PCB_H_
 
+#include "asystem.h"
+#include "list.h"
 #include "thread.h"
 #include "SCHEDULE.h"
-#include "list.h"
-#include "system.h"
 
 const StackSize maxStackSize = 65536;
 
-enum State {INITIALIZED, READY, RUNNING, SUSPENDED, TERMINATED};
+enum State {INITIALIZED, READY, SUSPENDED, TERMINATED};
 
 void idleBody();
 
@@ -24,6 +24,8 @@ public:
 
 	Thread *myThread;
 	List *waitingForThis;
+
+	unsigned unblockedByTime;
 
 	void start();
 	void waitToComplete();
