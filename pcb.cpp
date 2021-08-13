@@ -16,13 +16,11 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) 
 	unsigned long numOfIndex = stackSize / sizeof(unsigned);
 
 	lockCout
-	printf("pravim stek za %d\n", staticID);
+	//printf("pravim stek za %d\n", staticID);
 	unsigned* st1 = new unsigned[numOfIndex];
 
-	if (!st1) { // TODO: ovoooo
-		printf("Nemam memorije za stek\n");
-	}
-	else printf("Napravio sam stek za %d velicine %lu\n", staticID, numOfIndex);
+	if (!st1) printf("Nemam memorije za stek\n");
+	//else printf("Napravio sam stek za %d velicine %lu\n", staticID, numOfIndex);
 	unlockCout
 
 	st1[numOfIndex - 1] = 0x200;

@@ -8,8 +8,6 @@
 class KernelEv {
 public:
 
-	PCB *creator;
-
 	KernelEv (IVTNo ivtNo, PCB *creator);
 	~KernelEv ();
 
@@ -18,7 +16,8 @@ public:
 
 private:
 	int value;
-	int hasBlocked;
+	PCB* blockedPCB;
+	PCB* creatorPCB;
 
 };
 

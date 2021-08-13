@@ -4,8 +4,8 @@
 KernelEv::KernelEv(IVTNo ivtNo, PCB *creator) {
 	lockCout
 	this->value = 0;
-	this->hasBlocked = 0;
-	this->creator = creator;
+	this->blockedPCB = 0;
+	this->creatorPCB = creator;
 	Kernel::ivtEntries[ivtNo]->setKernelEv(this);
 	// ivtNo-om ulazu prosledim pokazivac na this da li za to treba lock
 	unlockCout
@@ -14,11 +14,11 @@ KernelEv::KernelEv(IVTNo ivtNo, PCB *creator) {
 KernelEv::~KernelEv() { }
 
 void KernelEv::wait() {
-	if (Kernel::running == this->creator) {
+	if (Kernel::running == this->creatorPCB) {
 		lockCout
 		if (this->value == 0) {
 			Kernel::running->state = SUSPENDED;
-			this->hasBlocked = 1;
+			this->blockedPCB = (PCB*) Kernel::running;
 			unlockCout
 			dispatch();
 		}
@@ -31,11 +31,11 @@ void KernelEv::wait() {
 
 void KernelEv::signal() {
 	lockCout
-	if (hasBlocked == 0) this->value = 1;
+	if (blockedPCB == 0) this->value = 1;
 	else {
-		Kernel::running->state = READY;
-		Scheduler::put((PCB*) Kernel::running);
-		hasBlocked = 0;
+		blockedPCB->state = READY;
+		Scheduler::put((PCB*) blockedPCB);
+		blockedPCB = 0;
 	}
 	unlockCout
 }
