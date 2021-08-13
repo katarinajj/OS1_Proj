@@ -29,10 +29,21 @@ List::~List() { deleteList(); }
 int List::length() { return len; }
 
 void List::insertAtEnd(void *q) {
+	if (!q) {
+		cout << "Insertujes null u listu\n";
+		return;
+	}
+
 	lockCout
 
 	lockCout
 	Elem *tmp = new Elem(q);
+	if (tmp == 0) {
+		cout << "Nemam memorije u listi";
+		unlockCout;
+		unlockCout;
+		return;
+	}
 	unlockCout
 
 	len++;

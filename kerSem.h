@@ -24,8 +24,8 @@ public:
 	int block();
 	int blockTime(Time maxTimeToWait);
 	void unblock();
-	void incVal();
 
+	friend class TimeList;
 private:
 	int value;
 };

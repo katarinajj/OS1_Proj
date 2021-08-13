@@ -1,4 +1,3 @@
-#include <iostream.h>
 #include "kerSem.h"
 
 volatile int lockFlag = 0;
@@ -11,11 +10,11 @@ unsigned tss;
 
 // da li ovo treba lockovati?
 PCB* Kernel::mainPCB = new PCB();
-PCB* Kernel::idlePCB = new PCB(defaultStackSize, 1, 0, idleBody);
+PCB* Kernel::idlePCB = new PCB(1024, 1, 0, idleBody);
 volatile PCB* Kernel::running = mainPCB;
 List* Kernel::allPCBs = new List();
 List* Kernel::allKernelSems = new List();
-
+IVTEntry* Kernel::ivtEntries[numOfEntries];
 
 void myPrintf() {
 #ifndef BCC_BLOCK_IGNORE

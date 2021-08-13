@@ -69,7 +69,7 @@ void TimeList::removeTimer() {
 		first->p->unblockedByTime = 1;
 		Scheduler::put(first->p);
 
-		this->sem->incVal();
+		++(sem->value);
 
 		old = first;
 		first = first->next;

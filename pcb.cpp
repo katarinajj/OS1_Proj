@@ -1,4 +1,3 @@
-#include <dos.h>
 #include "pcb.h"
 
 void idleBody() {
@@ -9,6 +8,7 @@ void idleBody() {
 
 ID PCB::staticID = 0;
 
+
 PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) {
 	// TODO: ispravi ovo za velicinu steka
 	if (stackSize > maxStackSize) stackSize = maxStackSize;
@@ -17,9 +17,13 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) 
 
 	lockCout
 	unsigned* st1 = new unsigned[numOfIndex];
+	if (!st1) { // TODO: ovoooo
+		printf("Nemam memorije za stek\n");
+	}
+	//else printf("Imam memorije za stek\n");
 	unlockCout
 
-	st1[numOfIndex - 1] = 0x200;//setovan I fleg u pocetnom PSW-u za nit
+	st1[numOfIndex - 1] = 0x200;
 
 #ifndef BCC_BLOCK_IGNORE
 	st1[numOfIndex - 2] = FP_SEG(body);
@@ -49,7 +53,7 @@ PCB::PCB() {
 	this->waitingForThis = 0;
 	this->unblockedByTime = 0;
 
-	this->timeSlice = defaultTimeSlice;
+	this->timeSlice = 0;
 	this->state = READY; // TODO: proveri je l bitno
 
 	lockCout

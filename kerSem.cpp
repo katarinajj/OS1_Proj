@@ -71,10 +71,5 @@ void KernelSem::unblock() {
 	Scheduler::put(tmp);
 }
 
-void KernelSem::incVal() {
-	lockCout
-	this->value++;
-	unlockCout
-}
 
 

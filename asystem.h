@@ -2,10 +2,15 @@
 #define ASYSTEM_H_
 
 #include <stdio.h>
+#include <dos.h>
+#include <iostream.h> // dodah
+
+int syncPrintf(const char *format, ...);
 
 class PCB;
 class List;
 class KernelSem;
+class IVTEntry;
 
 // hard lock - zabranjuje SVE maskirajuce prekide - dozvoljava gnezdjenje
 #define lock asm { pushf; cli; }
@@ -31,6 +36,8 @@ extern unsigned tbp;
 extern unsigned tsp;
 extern unsigned tss;
 
+const unsigned int numOfEntries = 256;
+
 class Kernel {
 public:
 	static PCB* mainPCB;
@@ -38,6 +45,7 @@ public:
 	static volatile PCB* running;
 	static List* allPCBs;
 	static List* allKernelSems;
+	static IVTEntry* ivtEntries[numOfEntries];
 
 	static void deleteAll();
 };
