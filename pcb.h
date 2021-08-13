@@ -38,9 +38,11 @@ public:
 	static void wrapper();
 	PCB();
 
+	ID id;
+
 private:
 	static ID staticID;
-	ID id;
+
 
 };
 

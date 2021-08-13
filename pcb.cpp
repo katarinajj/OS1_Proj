@@ -11,16 +11,18 @@ ID PCB::staticID = 0;
 
 PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) {
 	// TODO: ispravi ovo za velicinu steka
-	if (stackSize > maxStackSize) stackSize = maxStackSize;
+	if (stackSize >= maxStackSize) stackSize = maxStackSize - 1;
 
 	unsigned long numOfIndex = stackSize / sizeof(unsigned);
 
 	lockCout
+	printf("pravim stek za %d\n", staticID);
 	unsigned* st1 = new unsigned[numOfIndex];
+
 	if (!st1) { // TODO: ovoooo
 		printf("Nemam memorije za stek\n");
 	}
-	//else printf("Imam memorije za stek\n");
+	else printf("Napravio sam stek za %d velicine %lu\n", staticID, numOfIndex);
 	unlockCout
 
 	st1[numOfIndex - 1] = 0x200;

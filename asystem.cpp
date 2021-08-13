@@ -10,7 +10,7 @@ unsigned tss;
 
 // da li ovo treba lockovati?
 PCB* Kernel::mainPCB = new PCB();
-PCB* Kernel::idlePCB = new PCB(1024, 1, 0, idleBody);
+PCB* Kernel::idlePCB = new PCB(512, 1, 0, idleBody);
 volatile PCB* Kernel::running = mainPCB;
 List* Kernel::allPCBs = new List();
 List* Kernel::allKernelSems = new List();

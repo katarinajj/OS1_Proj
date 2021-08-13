@@ -1,122 +1,83 @@
 #include "thread.h"
-#include "semaphor.h"
-#include "event.h"
 
 /*
-	Test: dogadjaji
+	Test: Niti maxStack velicine
 */
 
-#include <iostream.h>
-#include <stdlib.h>
+#include <DOS.H>
+#include <STDIO.H>
+#include <STDARG.H>
 
-PREPAREENTRY(9,1);
+int syncPrintf(const char *format, ...)
+{
+	int res;
+	va_list args;
+	asm { pushf; cli; }
+	va_start(args, format);
+	res = vprintf(format, args);
+	va_end(args);
+	asm popf;
+	return res;
+}
 
-Semaphore* mutex = 0;
-Semaphore* sleepSem = 0;
+const int n = 9;
 
-void tick() {}
+void tick(){}
 
-
-class Znak : public Thread
+class TestThread : public Thread
 {
 public:
-	Znak(char znak, int n) : Thread(), znak(znak), n(n) {}
-	virtual ~Znak() { waitToComplete(); }
 
-	void run()
+	TestThread(): Thread(65536,2) {};
+	~TestThread()
 	{
-		// for (long i = 0; i < 100000; i++)
-		for (int i = 0; i < n; i++)
+		waitToComplete();
+	}
+protected:
+
+	void run();
+
+};
+
+void TestThread::run()
+{
+
+	int buffer=2;
+
+	for(int i=0;i<32000;i++)
+	{
+		buffer = 4096/2048;
+		for (int j = 0; j < 1024; j++)
 		{
-			if (mutex->wait(1)) {
-				cout << znak;
-				mutex->signal();
-			}
-
-			// for (int j = 0; j < 10000; j++)
-				// for (int k = 0; k < 10000; k++);
-			Time sleepTime = 2 + rand() % 8;
-			sleepSem->wait(sleepTime);
-
-			// dispatch();
-		}
-
-		if (mutex->wait(1)) {
-			cout << endl << znak << " finished" << endl;
-			mutex->signal();
+			buffer = buffer*2;
+			if(buffer%2)
+				buffer = 2;
 		}
 	}
 
-private:
-	char znak;
-	int n;
-
-};
+}
 
 
-class Key : public Thread {
-public:
-	Key(int n) : Thread(), n(n) {}
-	virtual ~Key() { waitToComplete(); }
-
-	void run() {
-		Event e(9);
-
-		for (int i = 0; i < n; i++) {
-			if (mutex->wait(1)) {
-				cout << endl << "key waiting " << (i + 1) << endl;
-				mutex->signal();
-			}
-
-			e.wait();
-
-			if (mutex->wait(1)) {
-				cout << endl << "key continue " << (i + 1) << endl;
-				mutex->signal();
-			}
-
-			sleepSem->wait(5);
-		}
-
-		if (mutex->wait(1)) {
-			cout << endl << "key finished" << endl;
-			mutex->signal();
-		}
+int userMain(int argc, char** argv)
+{
+	syncPrintf("Test starts: %d threads.\n",n);
+	syncPrintf("Noviji kod.\n");
+	int i;
+	TestThread threads[n];
+	Thread *th = 0;
+	for(i=0;i<n;i++)
+	{
+		threads[i].start();
 	}
-
-private:
-	int n;
-
-};
-
-
-int userMain(int argc, char* argv[]) {
-	mutex = new Semaphore(1);
-	sleepSem = new Semaphore(0);
-
-	Znak* a = new Znak('a', 10);
-	Znak* b = new Znak('b', 15);
-	Znak* c = new Znak('c', 20);
-	Key* k = new Key(150);
-
-	a->start();
-	b->start();
-	c->start();
-	k->start();
-
-	delete a;
-	delete b;
-	delete c;
-	delete k;
-
-	if (mutex->wait(1)) {
-		cout << endl << "userMain finished" << endl;
-		mutex->signal();
+	for(i=0;i<n;i++)
+	{
+		threads[i].waitToComplete();
+		th = Thread::getThreadById(i+3);
+		if (!th) syncPrintf("greskaaa main\n");
+		else syncPrintf("%d. Done!\n", th->getId());
 	}
-
-	delete sleepSem;
-	delete mutex;
-
+	syncPrintf("Test ends.\n");
 	return 0;
 }
+
 
