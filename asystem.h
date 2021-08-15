@@ -31,6 +31,7 @@ class IVTEntry;
 extern volatile int lockFlag; // inicijalno 0
 extern volatile unsigned context_switch_on_demand;
 extern volatile int counter;
+extern volatile unsigned ticks;
 
 extern unsigned tbp;
 extern unsigned tsp;

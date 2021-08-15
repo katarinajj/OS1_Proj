@@ -13,7 +13,7 @@ int main(int argc, char *argv[]){
 
 	restore();
 
-	printf("allPCBs len: %d\n", Kernel::allPCBs->length());
+	printf("\nallPCBs len: %d\n", Kernel::allPCBs->length());
 	printf("allKernelSems len: %d\n", Kernel::allKernelSems->length());
 	printf("lockFlag: %d\n", lockFlag);
 

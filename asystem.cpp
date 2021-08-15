@@ -3,6 +3,7 @@
 volatile int lockFlag = 0;
 volatile unsigned context_switch_on_demand = 0;
 volatile int counter = defaultTimeSlice;
+volatile unsigned ticks = 0;
 
 unsigned tbp;
 unsigned tsp;
@@ -31,12 +32,14 @@ void interrupt timer(){
 
 	// dodatak za semafore
 
-	if (!context_switch_on_demand) {
-
+	if (lockFlag == 0 && !context_switch_on_demand) {
+		++ticks;
 		for (Kernel::allKernelSems->onFirst(); Kernel::allKernelSems->hasCur(); Kernel::allKernelSems->onNext()) {
 			((KernelSem*)(Kernel::allKernelSems->getCur()))->waitingPCBs->removeTimer();
 		}
+		ticks = 0;
 	}
+	else if (lockFlag > 0 && !context_switch_on_demand) { ++ticks; }
 
 	if ((counter == 0 && Kernel::running->timeSlice != 0) || context_switch_on_demand) {
 		if (lockFlag == 0) {
@@ -52,15 +55,16 @@ void interrupt timer(){
 			Kernel::running->bp = tbp;
 
 			/* ---------- ispis unutar prekidne rutine
-			lockFlag = 0;
+			lockFlag = 1;
 			cout << "Promena konteksta! Brojac = " << counter << endl;
 			asm cli; // nekad se prekidi omoguce unutar cout<<...
-			lockFlag = 1;
+			lockFlag = 0;
 			*/
 
-
 			if (Kernel::running->state == READY) Scheduler::put((PCB*)Kernel::running);
+
 			Kernel::running = Scheduler::get();
+
 			if (Kernel::running == 0) Kernel::running = Kernel::idlePCB;
 
 			tsp = Kernel::running->sp;
@@ -138,6 +142,7 @@ void dispatch() {
 #ifndef BCC_BLOCK_IGNORE
 	lock
 #endif
+	//printf("U dispatch()\n");
 	context_switch_on_demand = 1;
 	timer();
 	unlock

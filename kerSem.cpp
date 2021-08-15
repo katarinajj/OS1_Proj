@@ -41,6 +41,7 @@ int KernelSem::block() {
 	lockCout
 	Kernel::running->state = SUSPENDED;
 	blockedPCBs->insertAtEnd((PCB*) Kernel::running);
+	//blockedPCBs->ispis();
 	unlockCout
 	dispatch();
 	return 1;

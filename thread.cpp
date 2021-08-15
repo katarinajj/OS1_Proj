@@ -3,9 +3,9 @@
 Thread::Thread (StackSize stackSize, Time timeSlice) {
 	lockCout
 	myPCB = new PCB(stackSize, timeSlice, this);
-	if (myPCB == 0) cout << "Nemam memorijeeee\n"; //TODO: ovo
+	if (myPCB == 0) printf("Nemam memorijeeee\n"); //TODO: ovo
 	else Kernel::allPCBs->insertAtEnd(myPCB);
-
+	//Kernel::allPCBs->ispis();
 	unlockCout
 }
 

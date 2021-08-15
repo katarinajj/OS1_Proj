@@ -61,9 +61,10 @@ void TimeList::insert(Time time1, PCB *p1) {
 void TimeList::removeTimer() {
 	if (!first) return;
 	lockCout
-	first->time--;
 	Elem *old = 0;
-	while (first && first->time == 0) {
+	int curTime = first->time - ticks;
+	first->time -= ticks;
+	while (first && curTime <= 0) {
 
 		first->p->state = READY;
 		first->p->unblockedByTime = 1;
@@ -73,6 +74,7 @@ void TimeList::removeTimer() {
 
 		old = first;
 		first = first->next;
+		if (first) curTime += first->time;
 		len--;
 
 		lockCout

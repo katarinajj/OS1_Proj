@@ -72,7 +72,7 @@ void PCB::start() {
 
 void PCB::waitToComplete() {
 	lockCout
-	if (this->state != TERMINATED) {
+	if (this->state != TERMINATED && this->state != INITIALIZED && Kernel::running != this && Kernel::running != Kernel::idlePCB) {
 		Kernel::running->state = SUSPENDED;
 		waitingForThis->insertAtEnd((PCB*)Kernel::running);
 		unlockCout

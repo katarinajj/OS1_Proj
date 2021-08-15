@@ -5,7 +5,7 @@ Semaphore::Semaphore(int init) {
 	if (init < 0) init = 0;
 	myImpl = new KernelSem(init, this);
 	Kernel::allKernelSems->insertAtEnd(myImpl);
-	Kernel::allKernelSems->ispis();
+	//Kernel::allKernelSems->ispis();
 	unlockCout
 }
 
