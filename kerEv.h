@@ -18,6 +18,7 @@ private:
 	int value;
 	PCB* blockedPCB;
 	PCB* creatorPCB;
+	IVTNo myIVTEntry;
 
 };
 

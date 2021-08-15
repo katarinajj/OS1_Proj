@@ -4,6 +4,7 @@
 KernelEv::KernelEv(IVTNo ivtNo, PCB *creator) {
 	lockCout
 	this->value = 0;
+	this->myIVTEntry = ivtNo;
 	this->blockedPCB = 0;
 	this->creatorPCB = creator;
 	Kernel::ivtEntries[ivtNo]->setKernelEv(this);
@@ -11,7 +12,9 @@ KernelEv::KernelEv(IVTNo ivtNo, PCB *creator) {
 	unlockCout
 }
 
-KernelEv::~KernelEv() { }
+KernelEv::~KernelEv() {
+	Kernel::ivtEntries[this->myIVTEntry]->resetKernelEv();
+}
 
 void KernelEv::wait() {
 	if (Kernel::running == this->creatorPCB) {

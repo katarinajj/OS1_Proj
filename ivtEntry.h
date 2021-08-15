@@ -16,6 +16,7 @@ public:
 
 	void signal();
 	void setKernelEv(KernelEv *ke);
+	void resetKernelEv();
 
 	pInterrupt oldISR;
 

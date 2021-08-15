@@ -54,7 +54,7 @@ PCB::PCB() {
 	this->unblockedByTime = 0;
 
 	this->timeSlice = 0;
-	this->state = READY; // TODO: proveri je l bitno
+	this->state = READY;
 
 	lockCout
 	this->id = ++staticID;

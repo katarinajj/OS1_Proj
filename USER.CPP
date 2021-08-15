@@ -4,7 +4,7 @@
 //   Date:    Maj 2021
 //===========================================================================//
 
-/*
+
 
 #include <iostream.h>
 #include <stdlib.h>
@@ -147,7 +147,7 @@ int userMain (int argc, char* argv[])
 	}
 	int buffSize = atoi(argv[1]);
 	N = atoi(argv[2]);
-	N = N>19 ? 19 : N;
+	//N = N>19 ? 19 : N;
 	TIME_SLICE = atoi(argv[3]);
 	
 	if(buffSize<N) {
@@ -214,5 +214,5 @@ int userMain (int argc, char* argv[])
 }
 //---------------------------------------------------------------------------//
 
- */
+
 

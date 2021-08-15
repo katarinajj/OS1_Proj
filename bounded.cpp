@@ -4,7 +4,7 @@
 //   Date:    Maj 2021
 //===========================================================================//
 
-/*
+
 #include <stdlib.h>
 #include "bounded.h"
 #include "intLock.h"
@@ -41,4 +41,4 @@ char BoundedBuffer::take () {
 	spaceAvailable.signal();
 	return d;
 }
-*/
+
