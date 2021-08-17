@@ -17,8 +17,9 @@ KernelEv::~KernelEv() {
 }
 
 void KernelEv::wait() {
+	lockCout
 	if (Kernel::running == this->creatorPCB) {
-		lockCout
+
 		if (this->value == 0) {
 			Kernel::running->state = SUSPENDED;
 			this->blockedPCB = (PCB*) Kernel::running;
@@ -29,6 +30,10 @@ void KernelEv::wait() {
 			this->value = 0;
 			unlockCout
 		}
+
+	}
+	else {
+		unlockCout
 	}
 }
 
