@@ -24,11 +24,6 @@ void IVTEntry::signal() {
 	}
 }
 
-void IVTEntry::setKernelEv(KernelEv *ke) {
-	this->myKerEv = ke;
-	//cout << "\n\nSETOVAN ker ev  ---" << myKerEv << "NULL: " << (myKerEv == 0) << endl;
-}
-
 void IVTEntry::resetKernelEv() {
 	this->myKerEv = 0;
 

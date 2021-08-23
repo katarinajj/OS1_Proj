@@ -16,7 +16,6 @@ void List::deleteList() {
 	unlockCout
 }
 
-
 List::List() {
 	lockCout
 	first = last = cur = prev = 0;
@@ -25,8 +24,6 @@ List::List() {
 }
 
 List::~List() { deleteList(); }
-
-int List::length() { return len; }
 
 void List::insertAtEnd(void *q) {
 	if (!q) {

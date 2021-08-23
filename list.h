@@ -22,7 +22,6 @@ public:
 	List();
 	~List();
 
-	int length();
 	void deleteList();
 
 	// QUEUE functions

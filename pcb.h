@@ -6,9 +6,9 @@
 #include "thread.h"
 #include "SCHEDULE.h"
 
-const StackSize maxStackSize = 65536;
+const StackSize maxStackSize = 65535;
 
-enum State {INITIALIZED, READY, SUSPENDED, TERMINATED};
+enum State {INITIALIZED, READY, SUSPENDED, TERMINATED, WAIT4KIDS};
 
 void idleBody();
 
@@ -40,11 +40,37 @@ public:
 
 	ID id;
 
+	// fork
+	static ID fork();
+	static void exit();
+	static void waitForForkChildren();
+	static void interrupt copyStack();
+
+	List *myActiveKids;
+	PCB *parent;
+	StackSize stackSize;
+
 private:
 	static ID staticID;
-
+	static void breakBondsWithKids();
 
 };
+
+// fork globalne promenljive
+
+extern Thread* childThread;
+extern int badFork;
+extern PCB* runningParent;
+
+extern int diffOff;
+extern int diffSeg;
+extern unsigned long numOfIndex2;
+
+extern unsigned curSS;
+extern unsigned curSP;
+extern unsigned curBPOff;
+extern unsigned *curBPAdr;
+extern unsigned *childBPAdr;
 
 
 #endif /* PCB_H_ */

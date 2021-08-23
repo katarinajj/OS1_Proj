@@ -4,12 +4,13 @@ volatile int lockFlag = 0;
 volatile unsigned context_switch_on_demand = 0;
 volatile int counter = defaultTimeSlice;
 volatile unsigned ticks = 0;
+volatile int numOfUnfinishedPCBs = 0;
+volatile unsigned idleLoopConst = 1;
 
 unsigned tbp;
 unsigned tsp;
 unsigned tss;
 
-// da li ovo treba lockovati?
 PCB* Kernel::mainPCB = new PCB();
 PCB* Kernel::idlePCB = new PCB(512, 1, 0, idleBody);
 volatile PCB* Kernel::running = mainPCB;
@@ -65,7 +66,9 @@ void interrupt timer(){
 
 			Kernel::running = Scheduler::get();
 
-			if (Kernel::running == 0) Kernel::running = Kernel::idlePCB;
+
+			if (Kernel::running == 0 && numOfUnfinishedPCBs == 0) Kernel::running = Kernel::mainPCB;
+			else if (Kernel::running == 0) Kernel::running = Kernel::idlePCB;
 
 			tsp = Kernel::running->sp;
 			tss = Kernel::running->ss;
@@ -150,11 +153,25 @@ void dispatch() {
 
 void Kernel::deleteAll() {
 	lockCout
+
+	if (numOfUnfinishedPCBs != 0) {
+		printf("--- suspendujem main\n");
+		Kernel::running->state = SUSPENDED;
+		unlockCout
+		dispatch();
+	}
+	else {
+		unlockCout
+	}
+	printf("\nallPCBs len: %d\n", Kernel::allPCBs->len);
+	printf("allKernelSems len: %d\n", Kernel::allKernelSems->len);
+	printf("lockFlag: %d\n", lockFlag);
+
 	if (Kernel::allPCBs) delete Kernel::allPCBs;
 	if (Kernel::mainPCB) delete Kernel::mainPCB;
 	if (Kernel::idlePCB) delete Kernel::idlePCB;
 	if (Kernel::allKernelSems) delete Kernel::allKernelSems;
-	unlockCout
+
 }
 
 

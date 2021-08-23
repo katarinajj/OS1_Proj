@@ -32,6 +32,8 @@ extern volatile int lockFlag; // inicijalno 0
 extern volatile unsigned context_switch_on_demand;
 extern volatile int counter;
 extern volatile unsigned ticks;
+extern volatile int numOfUnfinishedPCBs;
+extern volatile unsigned idleLoopConst;
 
 extern unsigned tbp;
 extern unsigned tsp;

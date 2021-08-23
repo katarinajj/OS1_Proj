@@ -7,8 +7,7 @@ KernelEv::KernelEv(IVTNo ivtNo, PCB *creator) {
 	this->myIVTEntry = ivtNo;
 	this->blockedPCB = 0;
 	this->creatorPCB = creator;
-	Kernel::ivtEntries[ivtNo]->setKernelEv(this);
-	// ivtNo-om ulazu prosledim pokazivac na this da li za to treba lock
+	Kernel::ivtEntries[ivtNo]->myKerEv = this;
 	unlockCout
 }
 

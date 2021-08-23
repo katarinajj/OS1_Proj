@@ -3,7 +3,7 @@
 Thread::Thread (StackSize stackSize, Time timeSlice) {
 	lockCout
 	myPCB = new PCB(stackSize, timeSlice, this);
-	if (myPCB == 0) printf("Nemam memorijeeee\n"); //TODO: ovo
+	if (myPCB == 0) { printf("Nemam memorijeeee\n"); badFork = -1; }//TODO: ovo
 	else Kernel::allPCBs->insertAtEnd(myPCB);
 	//Kernel::allPCBs->ispis();
 	unlockCout
@@ -40,6 +40,40 @@ Thread * Thread::getThreadById(ID id) {
 	return PCB::getThreadById(id);
 }
 
+// fork
+
+Thread* childThread = 0;
+int badFork = 0;
+
+ID Thread::fork() {
+	lockCout
+
+	//printf("----USAO SAM U THREAD::FORK\n");
+	badFork = 0;
+	childThread = Kernel::running->myThread->clone();
+	if (childThread == 0 || badFork == -1) {
+		unlockCout
+		return -1;
+	}
+
+	unlockCout
+	return PCB::fork();
+}
+
+void Thread::exit() {
+	PCB::exit();
+}
+
+void Thread::waitForForkChildren() {
+	PCB::waitForForkChildren();
+}
+
+Thread* Thread::clone() const {
+	lockCout
+	printf("Zasto sam u Thread::clone()\n");
+	unlockCout
+	return 0;
+}
 
 
 

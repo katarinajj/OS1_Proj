@@ -15,13 +15,13 @@ public:
 	~IVTEntry();
 
 	void signal();
-	void setKernelEv(KernelEv *ke);
 	void resetKernelEv();
 
 	pInterrupt oldISR;
+	KernelEv *myKerEv;
 
 private:
-	KernelEv *myKerEv;
+
 	IVTNo ivtNo;
 };
 
