@@ -1,4 +1,4 @@
-
+/*
 #include "intLock.h"
 
 int mutex_glb = 1;
@@ -15,3 +15,4 @@ void mutex_glb_wait(){
 }
 
 
+*/

@@ -155,7 +155,7 @@ void Kernel::deleteAll() {
 	lockCout
 
 	if (numOfUnfinishedPCBs != 0) {
-		printf("--- suspendujem main\n");
+		printf("--- suspendujem main jer ima jos %d\n", numOfUnfinishedPCBs);
 		Kernel::running->state = SUSPENDED;
 		unlockCout
 		dispatch();

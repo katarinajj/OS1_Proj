@@ -3,7 +3,7 @@
 //   File:    bounded.cpp
 //   Date:    Maj 2021
 //===========================================================================//
-
+/*
 
 #include <stdlib.h>
 #include "bounded.h"
@@ -42,4 +42,4 @@ char BoundedBuffer::take () {
 	return d;
 }
 
-
+*/

@@ -2,8 +2,13 @@
 
 Thread::Thread (StackSize stackSize, Time timeSlice) {
 	lockCout
+	badFork = 0;
 	myPCB = new PCB(stackSize, timeSlice, this);
-	if (myPCB == 0) { printf("Nemam memorijeeee\n"); badFork = -1; }//TODO: ovo
+	if (myPCB == 0 || badFork == -1) {
+		printf("Nemam memorije u Thread konstruktoru\n");
+		badFork = -1;
+		myPCB = 0;
+	}
 	else Kernel::allPCBs->insertAtEnd(myPCB);
 	//Kernel::allPCBs->ispis();
 	unlockCout

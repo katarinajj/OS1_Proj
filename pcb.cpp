@@ -10,45 +10,44 @@ ID PCB::staticID = 0;
 
 
 PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) {
-	// TODO: ispravi ovo za velicinu steka
 	if (stackSize > maxStackSize) stackSize = maxStackSize;
 
 	unsigned long numOfIndex = stackSize / sizeof(unsigned);
 
 	lockCout
-	//printf("pravim stek za %d\n", staticID);
 	unsigned* st1 = new unsigned[numOfIndex];
-	if (!st1) { printf("Nemam memorije za stek\n"); badFork = -1; }
-
 	unlockCout
 
-	st1[numOfIndex - 1] = 0x200;
+	if (!st1) { printf("Nemam memorije za stek u PCB konstr\n"); badFork = -1; }
+	else {
+		st1[numOfIndex - 1] = 0x200;
 
-#ifndef BCC_BLOCK_IGNORE
-	st1[numOfIndex - 2] = FP_SEG(body);
-	st1[numOfIndex - 3] = FP_OFF(body);
+	#ifndef BCC_BLOCK_IGNORE
+		st1[numOfIndex - 2] = FP_SEG(body);
+		st1[numOfIndex - 3] = FP_OFF(body);
 
-	this->ss = FP_SEG(st1 + numOfIndex - 12);
-	this->sp = FP_OFF(st1 + numOfIndex - 12);  //svi sacuvani reg pri ulasku u interrupt rutinu
-    this->bp = FP_OFF(st1 + numOfIndex - 12);
-#endif
+		this->ss = FP_SEG(st1 + numOfIndex - 12);
+		this->sp = FP_OFF(st1 + numOfIndex - 12);
+		this->bp = FP_OFF(st1 + numOfIndex - 12);
+	#endif
 
-	this->state = INITIALIZED;
-	this->myThread = myThread;
-	this->timeSlice = timeSlice;
-	this->stack = st1;
-	this->unblockedByTime = 0;
+		this->state = INITIALIZED;
+		this->myThread = myThread;
+		this->timeSlice = timeSlice;
+		this->stack = st1;
+		this->unblockedByTime = 0;
 
-	// fork
-	st1[numOfIndex - 12] = 0;
-	this->stackSize = stackSize;
-	this->parent = 0;
+		// fork
+		st1[numOfIndex - 12] = 0;
+		this->stackSize = stackSize;
+		this->parent = 0;
 
-	lockCout
-	this->id = ++staticID;
-	this->waitingForThis = new List();
-	this->myActiveKids = new List();
-	unlockCout
+		lockCout
+		this->id = ++staticID;
+		this->waitingForThis = new List();
+		this->myActiveKids = new List();
+		unlockCout
+	}
 }
 
 PCB::PCB() {
@@ -164,6 +163,7 @@ ID PCB::fork() {
 
 	numOfIndex2 = Kernel::running->stackSize / sizeof(unsigned);
 
+
 	PCB::copyStack();
 
 	if (Kernel::running == runningParent) {
@@ -209,9 +209,10 @@ void interrupt PCB::copyStack() {
 		curBPOff = *curBPAdr;
 	}
 
+
 	// startujem nit dete
 	if (childThread->myPCB->state == INITIALIZED) {
-		//printf("START DETE\n");
+		++numOfUnfinishedPCBs;
 		childThread->myPCB->state = READY;
 		Scheduler::put(childThread->myPCB);
 		Kernel::running->myActiveKids->insertAtEnd(childThread->myPCB);
@@ -239,8 +240,11 @@ void PCB::exit() {
 
 void PCB::breakBondsWithKids() {
 	// ako si dete obavesti roditelja da si gotov
+
 	if (Kernel::running->parent) {
-		Kernel::running->myActiveKids->removePCB((PCB*)Kernel::running);
+
+		Kernel::running->parent->myActiveKids->removePCB((PCB*)Kernel::running);
+
 		if (Kernel::running->parent->state == WAIT4KIDS && Kernel::running->parent->myActiveKids->len == 0) {
 			Kernel::running->parent->state = READY;
 			Scheduler::put(Kernel::running->parent);
@@ -256,12 +260,15 @@ void PCB::breakBondsWithKids() {
 
 void PCB::waitForForkChildren() {
 	lockCout
-	if (Kernel::running->myActiveKids->len > 0) {
+	if (Kernel::running->myActiveKids && Kernel::running->myActiveKids->len > 0) {
+		//printf("OVDEE\n");
 		Kernel::running->state = WAIT4KIDS;
+		//printf("SAD JE %d wait4kids\n", Thread::getRunningId());
 		unlockCout
 		dispatch();
 	}
 	else {
+		//printf("OVDEE2 %d\n", Thread::getRunningId());
 		unlockCout
 	}
 }

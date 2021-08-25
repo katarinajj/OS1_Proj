@@ -71,9 +71,9 @@ void* List::removeAtFront() {
 
 void List::removePCB(PCB *p1) { // obrisala sam okruzujuce lockove
 	Elem *tmp = first, *prev1 = 0;
-	if (tmp && ((PCB*)(tmp->p))->getId() == p1->getId()) {
+	if (tmp && (PCB*)(tmp->p) == p1) {
 		first = first->next;
-		len--;
+		--len;
 
 		lockCout
 		delete tmp;
@@ -81,12 +81,15 @@ void List::removePCB(PCB *p1) { // obrisala sam okruzujuce lockove
 
 		return;
 	}
-	for (; tmp && ((PCB*)(tmp->p))->getId() != p1->getId(); tmp = tmp->next)
+	for (; tmp && (PCB*)(tmp->p) != p1; tmp = tmp->next)
 		prev1 = tmp;
 
-	if (!tmp) return; // nije ni bio u listi
+	if (!tmp) {
+		printf("------Nema ga u listi\n");
+		return; // nije ni bio u listi
+	}
 	prev1->next = tmp->next;
-	len--;
+	--len;
 
 	lockCout
 	delete tmp;
