@@ -5,7 +5,7 @@ int userMain(int argc, char* argv[]);
 
 class UserMainThread : public Thread {
 public:
-	UserMainThread(int userArgc1, char **userArgv1) : Thread(65535, 0) {
+	UserMainThread(int userArgc1, char **userArgv1) : Thread(defaultStackSize, defaultTimeSlice) {
 		this->userArgc = userArgc1;
 		this->userArgv = userArgv1;
 	}

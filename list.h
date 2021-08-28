@@ -25,7 +25,7 @@ public:
 	void deleteList();
 
 	// QUEUE functions
-	void insertAtEnd(void *q);
+	int insertAtEnd(void *q);
 	void* removeAtFront();
 
 	// PCB functions

@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 #include <dos.h>
-#include <iostream.h> // dodah
+#include <iostream.h>
 
-int syncPrintf(const char *format, ...);
+//int syncPrintf(const char *format, ...);
 
 class PCB;
 class List;
@@ -16,7 +16,6 @@ class IVTEntry;
 #define lock asm { pushf; cli; }
 #define unlock asm popf
 
-// TODO: proveri ove lockove
 // lock koji koristimo u kriticnim sekcijama da ne bi dolazilo do promene konteksta - dozvoljava gnezdjenje
 #define lockCout ++lockFlag;
 

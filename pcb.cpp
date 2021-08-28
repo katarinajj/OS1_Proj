@@ -1,4 +1,5 @@
 #include "pcb.h"
+//#include <stdlib.h>
 
 void idleBody() {
 	while(idleLoopConst) {
@@ -18,7 +19,10 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) 
 	unsigned* st1 = new unsigned[numOfIndex];
 	unlockCout
 
-	if (!st1) { printf("Nemam memorije za stek u PCB konstr\n"); badFork = -1; }
+	if (!st1) {
+		printf("Nemam memorije za stek u PCB konstr\n");
+		badFork = -1;
+	}
 	else {
 		st1[numOfIndex - 1] = 0x200;
 
@@ -46,6 +50,11 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) 
 		this->id = ++staticID;
 		this->waitingForThis = new List();
 		this->myActiveKids = new List();
+		if (this->waitingForThis == 0 || this->myActiveKids == 0) {
+			printf("Nemam memorije za liste u PCB konstr\n");
+			badFork = -1;
+			//::exit(-1);
+		}
 		unlockCout
 	}
 }
@@ -81,8 +90,8 @@ void PCB::start() {
 }
 
 void PCB::waitToComplete() {
-	lockCout // && Kernel::running != Kernel::idlePCB
-	if (this->state != TERMINATED && this->state != INITIALIZED && Kernel::running != this) {
+	lockCout
+	if (this->state != TERMINATED && this->state != INITIALIZED && Kernel::running != this && this != Kernel::idlePCB) {
 		Kernel::running->state = SUSPENDED;
 		waitingForThis->insertAtEnd((PCB*)Kernel::running);
 		unlockCout
@@ -144,17 +153,15 @@ void PCB::wrapper() {
 
 // fork
 
-PCB* runningParent = 0;
 int diffOff = 0;
 int diffSeg = 0;
 unsigned long numOfIndex2 = 0;
 
 ID PCB::fork() {
-
 	lockCout
-	//printf("PCB::FORK()\n");
+
 	childThread->myPCB->parent = (PCB*)Kernel::running;
-	runningParent = (PCB*)Kernel::running;
+	PCB* runningParent = (PCB*)Kernel::running;
 
 #ifndef BCC_BLOCK_IGNORE
 	diffOff = FP_OFF(childThread->myPCB->stack) - FP_OFF(Kernel::running->stack);
@@ -163,13 +170,13 @@ ID PCB::fork() {
 
 	numOfIndex2 = Kernel::running->stackSize / sizeof(unsigned);
 
-
 	PCB::copyStack();
 
+	ID retID = 0;
 	if (Kernel::running == runningParent) {
-		//printf("roditelj nastavlja i lockFlag = %d\n", lockFlag);
+		retID = childThread->myPCB->id;
 		unlockCout
-		return childThread->myPCB->id;
+		return retID;
 	}
 	else {
 		//unlockCout
@@ -197,18 +204,24 @@ void interrupt PCB::copyStack() {
 	}
 #endif
 
+	/*
+	printf("child ss pre: %u\n", childThread->myPCB->ss);
 	childThread->myPCB->ss = curSS + diffSeg;
+	printf("child ss posle: %u\n", childThread->myPCB->ss);
+	*/
 	childThread->myPCB->sp = curSP + diffOff;
 	childThread->myPCB->bp = curBPOff + diffOff;
 
+
 	//azuriranje BP deteta
 	while (curBPOff != 0) {
+#ifndef BCC_BLOCK_IGNORE
 		childBPAdr = (unsigned*)MK_FP(childThread->myPCB->ss, curBPOff + diffOff);
 		*childBPAdr += diffOff;
 		curBPAdr = (unsigned*)MK_FP(curSS, curBPOff);
+#endif
 		curBPOff = *curBPAdr;
 	}
-
 
 	// startujem nit dete
 	if (childThread->myPCB->state == INITIALIZED) {
@@ -261,14 +274,13 @@ void PCB::breakBondsWithKids() {
 void PCB::waitForForkChildren() {
 	lockCout
 	if (Kernel::running->myActiveKids && Kernel::running->myActiveKids->len > 0) {
-		//printf("OVDEE\n");
+
 		Kernel::running->state = WAIT4KIDS;
-		//printf("SAD JE %d wait4kids\n", Thread::getRunningId());
+
 		unlockCout
 		dispatch();
 	}
 	else {
-		//printf("OVDEE2 %d\n", Thread::getRunningId());
 		unlockCout
 	}
 }

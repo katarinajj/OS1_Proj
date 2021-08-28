@@ -60,7 +60,6 @@ private:
 
 extern Thread* childThread;
 extern int badFork;
-extern PCB* runningParent;
 
 extern int diffOff;
 extern int diffSeg;

@@ -1,4 +1,5 @@
 #include "kerSem.h"
+#include <assert.h>
 
 volatile int lockFlag = 0;
 volatile unsigned context_switch_on_demand = 0;
@@ -147,6 +148,7 @@ void dispatch() {
 #endif
 	//printf("U dispatch()\n");
 	context_switch_on_demand = 1;
+	assert(lockFlag == 0);
 	timer();
 	unlock
 }

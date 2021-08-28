@@ -1,4 +1,5 @@
 #include "pcb.h"
+//#include <stdlib.h>
 
 Thread::Thread (StackSize stackSize, Time timeSlice) {
 	lockCout
@@ -6,11 +7,16 @@ Thread::Thread (StackSize stackSize, Time timeSlice) {
 	myPCB = new PCB(stackSize, timeSlice, this);
 	if (myPCB == 0 || badFork == -1) {
 		printf("Nemam memorije u Thread konstruktoru\n");
+		//::exit(-1);
 		badFork = -1;
 		myPCB = 0;
 	}
-	else Kernel::allPCBs->insertAtEnd(myPCB);
-	//Kernel::allPCBs->ispis();
+	else if (Kernel::allPCBs->insertAtEnd(myPCB) == -1) {
+		printf("Nemam memorije u Thread konstr za listu\n");
+		if (myPCB) delete myPCB; // mozda pravi problem
+		badFork = -1;
+		myPCB = 0;
+	}
 	unlockCout
 }
 
@@ -55,14 +61,21 @@ ID Thread::fork() {
 
 	//printf("----USAO SAM U THREAD::FORK\n");
 	badFork = 0;
+	childThread = 0;
 	childThread = Kernel::running->myThread->clone();
 	if (childThread == 0 || badFork == -1) {
 		unlockCout
 		return -1;
 	}
+	//else if (childThread->myPCB == 0) { unlockCout; return -1;}
 
-	unlockCout
-	return PCB::fork();
+
+	ID retFork = PCB::fork();
+	if (retFork > 0) {
+		unlockCout
+		return retFork;
+	}
+	else return 0;
 }
 
 void Thread::exit() {

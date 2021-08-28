@@ -25,23 +25,19 @@ List::List() {
 
 List::~List() { deleteList(); }
 
-void List::insertAtEnd(void *q) {
+int List::insertAtEnd(void *q) {
 	if (!q) {
-		cout << "Insertujes null u listu\n";
-		return;
+		printf("Insertujes null u listu\n"); return -1;
 	}
 
 	lockCout
 
-	lockCout
 	Elem *tmp = new Elem(q);
 	if (tmp == 0) {
-		cout << "Nemam memorije u listi";
-		unlockCout;
-		unlockCout;
-		return;
+		printf("Nemam memorije u listi");
+		unlockCout
+		return -1;
 	}
-	unlockCout
 
 	len++;
 	if (!first) first = tmp;
@@ -61,9 +57,7 @@ void* List::removeAtFront() {
 	if (!first) last = 0;
 	len--;
 
-	lockCout
 	delete old;
-	unlockCout
 
 	unlockCout
 	return ret;
