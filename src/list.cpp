@@ -45,6 +45,7 @@ int List::insertAtEnd(void *q) {
 	last = tmp;
 
 	unlockCout
+	return 1;
 }
 
 void* List::removeAtFront() {

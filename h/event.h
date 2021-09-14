@@ -10,8 +10,10 @@ IVTEntry ivtEntry##ivtNo(ivtNo, newISRout##ivtNo);\
 void interrupt newISRout##ivtNo(...) {\
 	ivtEntry##ivtNo.signal();\
 	if (flag == 1) ivtEntry##ivtNo.oldISR();\
+	dispatch();\
 }
 
+// zbog ovog dispatch() brze rade eventovi
 
 typedef unsigned char IVTNo;
 

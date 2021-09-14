@@ -62,7 +62,7 @@ extern Thread* childThread;
 extern int badFork;
 
 extern int diffOff;
-extern int diffSeg;
+//extern int diffSeg;
 extern unsigned long numOfIndex2;
 
 extern unsigned curSS;

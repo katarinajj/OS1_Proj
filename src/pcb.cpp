@@ -1,5 +1,4 @@
 #include "pcb.h"
-//#include <stdlib.h>
 
 void idleBody() {
 	while(idleLoopConst) {
@@ -53,7 +52,6 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread *myThread, void (*body)()) 
 		if (this->waitingForThis == 0 || this->myActiveKids == 0) {
 			printf("Nemam memorije za liste u PCB konstr\n");
 			badFork = -1;
-			//::exit(-1);
 		}
 		unlockCout
 	}
@@ -104,9 +102,18 @@ void PCB::waitToComplete() {
 
 PCB::~PCB() {
 	lockCout
-	if(this->stack) {
+
+	if (this->stack) {
 		delete [] this->stack;
 		this->stack = 0;
+	}
+	if (this->myActiveKids) {
+		delete this->myActiveKids;
+		this->myActiveKids = 0;
+	}
+	if (this->waitingForThis) {
+		delete this->waitingForThis;
+		this->waitingForThis = 0;
 	}
 
 	unlockCout
@@ -126,9 +133,14 @@ Thread * PCB::getThreadById(ID id) {
 		tmp = (PCB*)(Kernel::allPCBs->getCur());
 		if (tmp->getId() == id) { found = 1; break; }
 	}
-	unlockCout
-	if (found == 0) return 0;
-	else return tmp->myThread;
+	if (found == 0) {
+		unlockCout
+		return 0;
+	}
+	else {
+		unlockCout
+		return tmp->myThread;
+	}
 }
 
 void PCB::wrapper() {
@@ -154,7 +166,6 @@ void PCB::wrapper() {
 // fork
 
 int diffOff = 0;
-int diffSeg = 0;
 unsigned long numOfIndex2 = 0;
 
 ID PCB::fork() {
@@ -162,31 +173,26 @@ ID PCB::fork() {
 
 	childThread->myPCB->parent = (PCB*)Kernel::running;
 	PCB* runningParent = (PCB*)Kernel::running;
+	ID retID = childThread->myPCB->id;
 
 #ifndef BCC_BLOCK_IGNORE
 	diffOff = FP_OFF(childThread->myPCB->stack) - FP_OFF(Kernel::running->stack);
-	diffSeg = FP_SEG(childThread->myPCB->stack) - FP_SEG(Kernel::running->stack);
 #endif
 
 	numOfIndex2 = Kernel::running->stackSize / sizeof(unsigned);
 
 	PCB::copyStack();
 
-	ID retID = 0;
 	if (Kernel::running == runningParent) {
-		retID = childThread->myPCB->id;
 		unlockCout
 		return retID;
 	}
-	else {
-		//unlockCout
-		return 0;
-	}
+	else return 0;
+
 }
 
 unsigned curSS;
 unsigned curSP;
-
 unsigned curBPOff;
 unsigned *curBPAdr;
 unsigned *childBPAdr;
@@ -204,14 +210,7 @@ void interrupt PCB::copyStack() {
 	}
 #endif
 
-	/*
-	printf("child ss pre: %u\n", childThread->myPCB->ss);
-	childThread->myPCB->ss = curSS + diffSeg;
-	printf("child ss posle: %u\n", childThread->myPCB->ss);
-	*/
-	childThread->myPCB->sp = curSP + diffOff;
 	childThread->myPCB->bp = curBPOff + diffOff;
-
 
 	//azuriranje BP deteta
 	while (curBPOff != 0) {
@@ -223,12 +222,14 @@ void interrupt PCB::copyStack() {
 		curBPOff = *curBPAdr;
 	}
 
+	childThread->myPCB->sp = childThread->myPCB->bp;
+
 	// startujem nit dete
 	if (childThread->myPCB->state == INITIALIZED) {
 		++numOfUnfinishedPCBs;
 		childThread->myPCB->state = READY;
 		Scheduler::put(childThread->myPCB);
-		Kernel::running->myActiveKids->insertAtEnd(childThread->myPCB);
+
 	}
 }
 

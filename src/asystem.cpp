@@ -1,5 +1,4 @@
 #include "kerSem.h"
-#include <assert.h>
 
 volatile int lockFlag = 0;
 volatile unsigned context_switch_on_demand = 0;
@@ -29,8 +28,11 @@ void myPrintf() {
 
 void interrupt timer(){
 
-	if (!context_switch_on_demand) { asm int 60h; tick(); }
-	if (!context_switch_on_demand && counter > 0) { counter--; }
+	if (!context_switch_on_demand) {
+		asm int 60h;
+		tick();
+		if (counter > 0) { --counter; }
+	}
 
 	// dodatak za semafore
 
@@ -87,9 +89,9 @@ void interrupt timer(){
 	}
 }
 
-unsigned oldTimerOFF, oldTimerSEG; // stara prekidna rutina
+unsigned oldTimerOFF, oldTimerSEG;
 
-// postavlja novu prekidnu rutinu
+// postavlja novu prekidnu rutinu -- kao sa snimka LAB vezbe
 void inic(){
 #ifndef BCC_BLOCK_IGNORE
 	lock
@@ -148,7 +150,6 @@ void dispatch() {
 #endif
 	//printf("U dispatch()\n");
 	context_switch_on_demand = 1;
-	assert(lockFlag == 0);
 	timer();
 	unlock
 }
@@ -165,9 +166,6 @@ void Kernel::deleteAll() {
 	else {
 		unlockCout
 	}
-	printf("\nallPCBs len: %d\n", Kernel::allPCBs->len);
-	printf("allKernelSems len: %d\n", Kernel::allKernelSems->len);
-	printf("lockFlag: %d\n", lockFlag);
 
 	if (Kernel::allPCBs) delete Kernel::allPCBs;
 	if (Kernel::mainPCB) delete Kernel::mainPCB;

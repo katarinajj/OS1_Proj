@@ -21,7 +21,7 @@ Semaphore::~Semaphore() {
 
 int Semaphore::wait(Time maxTimeToWait) {
 	if (myImpl) return myImpl->wait(maxTimeToWait);
-	else return -1; // TODO: ?
+	else return -1;
 }
 
 void Semaphore::signal() {
@@ -30,7 +30,7 @@ void Semaphore::signal() {
 
 int Semaphore::val() const {
 	if (myImpl) return myImpl->val();
-	else return -1; // TODO: ?
+	else return -1; // nema bas smisla
 }
 
 

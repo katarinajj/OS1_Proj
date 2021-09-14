@@ -15,7 +15,7 @@ IVTEntry::IVTEntry(IVTNo ivtNo, pInterrupt newISR) {
 
 IVTEntry::~IVTEntry() {
 	Kernel::ivtEntries[this->ivtNo] = 0;
-	resetKernelEv();
+	resetKernelEv(); // bez ovoga brze radi esc kad se drze strelice
 }
 
 void IVTEntry::signal() {

@@ -5,28 +5,30 @@ KernelEv::KernelEv(IVTNo ivtNo, PCB *creator) {
 	lockCout
 	this->value = 0;
 	this->myIVTEntry = ivtNo;
-	this->blockedPCB = 0;
 	this->creatorPCB = creator;
 	Kernel::ivtEntries[ivtNo]->myKerEv = this;
 	unlockCout
 }
 
 KernelEv::~KernelEv() {
-	Kernel::ivtEntries[this->myIVTEntry]->resetKernelEv();
+	lockCout
+	this->creatorPCB = 0;
+	if (Kernel::ivtEntries[this->myIVTEntry]) Kernel::ivtEntries[this->myIVTEntry]->resetKernelEv();
+	unlockCout
 }
+
+// Programiranje u realnom vremenu skripta
 
 void KernelEv::wait() {
 	lockCout
 	if (Kernel::running == this->creatorPCB) {
 
-		if (this->value == 0) {
+		if (--value < 0) {
 			Kernel::running->state = SUSPENDED;
-			this->blockedPCB = (PCB*) Kernel::running;
 			unlockCout
 			dispatch();
 		}
 		else {
-			this->value = 0;
 			unlockCout
 		}
 
@@ -38,12 +40,13 @@ void KernelEv::wait() {
 
 void KernelEv::signal() {
 	lockCout
-	if (blockedPCB == 0) this->value = 1;
-	else {
-		blockedPCB->state = READY;
-		Scheduler::put((PCB*) blockedPCB);
-		blockedPCB = 0;
+
+	if (++value <= 0) {
+		creatorPCB->state = READY;
+		Scheduler::put((PCB*) creatorPCB);
 	}
+	else value = 1;
+
 	unlockCout
 }
 
